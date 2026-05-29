@@ -35,31 +35,34 @@ Tell Claude "I'm logged in" and Claude will create the repo and push the code.
 
 ## Part 2 — Push the code to GitHub (Claude does this)
 
-Claude runs:
+The repo is **RogerChouSPC/my-games**, and this game lives in the `sequence-numbers/`
+subfolder. Once you're logged in, Claude pushes with:
 ```
-gh repo create sequence-numbers --private --source=. --push
+git push -u origin main
 ```
-This creates a private GitHub repository and uploads the code.
 
 ---
 
 ## Part 3 — Deploy on Railway (Claude guides, you click)
 
-1. Go to **https://railway.com** and sign up (you can click **"Login with GitHub"** — easiest).
+1. Go to **https://railway.com** and sign up (click **"Login with GitHub"** — easiest).
 2. Click **New Project** → **Deploy from GitHub repo**.
 3. The first time, Railway asks to connect to GitHub — approve it, and give it access to the
-   `sequence-numbers` repository.
-4. Pick the **sequence-numbers** repo. Railway starts building automatically.
-5. Wait ~2-3 minutes for the build to finish (you'll see logs).
-6. Go to the project's **Settings → Networking → Generate Domain**. This gives you a public URL
-   like `https://sequence-numbers-production.up.railway.app`.
-7. Open that URL — that's your game! Share it with friends to play.
+   **my-games** repository.
+4. Pick the **my-games** repo. Railway starts trying to build.
+5. **IMPORTANT — set the root directory:** because the game is in a subfolder, open
+   **Settings → Source → Root Directory** and set it to `sequence-numbers`, then redeploy.
+   (Without this, Railway won't find the game.)
+6. Wait ~2-3 minutes for the build to finish (you'll see logs).
+7. Go to **Settings → Networking → Generate Domain**. This gives you a public URL like
+   `https://my-games-production.up.railway.app`.
+8. Open that URL — that's your game! Share it with friends to play.
 
 ### Notes
-- The project already includes `railway.json`, which tells Railway how to build and run the game.
-  You don't need to configure anything.
+- The `sequence-numbers/railway.json` file tells Railway how to build and run the game once the
+  root directory is set. You don't need to configure anything else.
 - Free trial credit covers light use; after that it's about **$5/month** for an always-on server.
-- Every time the code is updated and pushed to GitHub, Railway automatically rebuilds and redeploys.
+- Every time the code is pushed to GitHub, Railway automatically rebuilds and redeploys.
 
 ---
 

@@ -66,6 +66,8 @@ export function registerHandlers(io: Server): void {
       };
       rooms.set(code, room);
       playerSocket.set(player.id, socket.id);
+      socket.data.playerId = player.id; // bind identity to this connection (anti-spoofing)
+      socket.data.roomCode = code;
       socket.join(code);
       socket.emit('joined', { code });
       broadcast(io, room);
@@ -89,25 +91,33 @@ export function registerHandlers(io: Server): void {
         return;
       }
       playerSocket.set(player.id, socket.id);
+      socket.data.playerId = player.id; // bind identity to this connection (anti-spoofing)
+      socket.data.roomCode = code;
       socket.join(code);
       socket.emit('joined', { code });
       broadcast(io, room);
     });
 
-    socket.on(
-      'assign-team',
-      ({ code, playerId, team }: { code: string; playerId: string; team: TeamColor | null }) => {
-        const room = rooms.get(code);
-        if (!room || room.phase !== 'lobby') return;
-        const p = room.players.find((p) => p.id === playerId);
-        if (p) p.team = team;
-        broadcast(io, room);
-      }
-    );
+    // The trusted actor for any action is the id bound to THIS socket, never the payload.
+    const actorId = (): string | undefined => socket.data.playerId;
+    const isHost = (room: ServerRoom): boolean => room.hostId === socket.data.playerId;
+
+    socket.on('assign-team', ({ code, playerId, team }: { code: string; playerId: string; team: TeamColor | null }) => {
+      const room = rooms.get(code);
+      if (!room || room.phase !== 'lobby') return;
+      const me = actorId();
+      if (!me) return;
+      // You may set your own team; only the host may move another player.
+      if (playerId !== me && !isHost(room)) return;
+      const p = room.players.find((p) => p.id === playerId);
+      if (p) p.team = team;
+      broadcast(io, room);
+    });
 
     socket.on('start-game', ({ code }: { code: string }) => {
       const room = rooms.get(code);
       if (!room || room.phase !== 'lobby') return;
+      if (!isHost(room)) return; // host only
       if (room.players.some((p) => p.team === null)) return; // all players must have a team
       Object.assign(room, startGame(room));
       broadcast(io, room);
@@ -126,54 +136,58 @@ export function registerHandlers(io: Server): void {
 
     socket.on(
       'play-number',
-      ({ code, playerId, cardId, cellIndex }: { code: string; playerId: string; cardId: string; cellIndex: number }) => {
+      ({ code, cardId, cellIndex }: { code: string; cardId: string; cellIndex: number }) => {
         const room = rooms.get(code);
-        if (!room) return;
-        applyAndBroadcast(code, playNumberCard(room, playerId, cardId, cellIndex));
+        const me = actorId();
+        if (!room || !me) return;
+        applyAndBroadcast(code, playNumberCard(room, me, cardId, cellIndex));
       }
     );
 
     socket.on(
       'play-plus',
-      ({ code, playerId, cardId, cellIndex }: { code: string; playerId: string; cardId: string; cellIndex: number }) => {
+      ({ code, cardId, cellIndex }: { code: string; cardId: string; cellIndex: number }) => {
         const room = rooms.get(code);
-        if (!room) return;
-        applyAndBroadcast(code, playPlusCard(room, playerId, cardId, cellIndex));
+        const me = actorId();
+        if (!room || !me) return;
+        applyAndBroadcast(code, playPlusCard(room, me, cardId, cellIndex));
       }
     );
 
     socket.on(
       'play-minus',
-      ({ code, playerId, cardId, cellIndex }: { code: string; playerId: string; cardId: string; cellIndex: number }) => {
+      ({ code, cardId, cellIndex }: { code: string; cardId: string; cellIndex: number }) => {
         const room = rooms.get(code);
-        if (!room) return;
-        applyAndBroadcast(code, playMinusCard(room, playerId, cardId, cellIndex));
+        const me = actorId();
+        if (!room || !me) return;
+        applyAndBroadcast(code, playMinusCard(room, me, cardId, cellIndex));
       }
     );
 
-    socket.on('swap-dead', ({ code, playerId, cardId }: { code: string; playerId: string; cardId: string }) => {
+    socket.on('swap-dead', ({ code, cardId }: { code: string; cardId: string }) => {
       const room = rooms.get(code);
-      if (!room) return;
-      applyAndBroadcast(code, swapDeadCard(room, playerId, cardId));
+      const me = actorId();
+      if (!room || !me) return;
+      applyAndBroadcast(code, swapDeadCard(room, me, cardId));
     });
 
     socket.on('next-game', ({ code }: { code: string }) => {
       const room = rooms.get(code);
-      if (!room) return;
+      if (!room || !isHost(room)) return; // host only
       Object.assign(room, nextGame(room, winningTeamColor(room)));
       broadcast(io, room);
     });
 
     socket.on('declare-last', ({ code }: { code: string }) => {
       const room = rooms.get(code);
-      if (!room) return;
+      if (!room || !isHost(room)) return; // host only
       Object.assign(room, declareLastGame(room));
       broadcast(io, room);
     });
 
     socket.on('play-again', ({ code }: { code: string }) => {
       const room = rooms.get(code);
-      if (!room) return;
+      if (!room || !isHost(room)) return; // host only
       room.phase = 'lobby';
       room.isLastGame = false;
       room.winners = null;
@@ -184,8 +198,10 @@ export function registerHandlers(io: Server): void {
       broadcast(io, room);
     });
 
-    socket.on('reaction', ({ code, playerId, emoji }: { code: string; playerId: string; emoji: string }) => {
-      io.to(code).emit('reaction', { playerId, emoji });
+    socket.on('reaction', ({ code, emoji }: { code: string; emoji: string }) => {
+      const me = actorId();
+      if (!me || typeof emoji !== 'string') return;
+      io.to(code).emit('reaction', { playerId: me, emoji });
     });
 
     socket.on('disconnect', () => {

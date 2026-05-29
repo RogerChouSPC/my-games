@@ -1,0 +1,9 @@
+node_modules
+.next
+.env*.local
+.superpowers
+*.py
+next-env.d.ts
+memory
+.playwright-mcp
+*.log

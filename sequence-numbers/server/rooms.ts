@@ -11,6 +11,7 @@ import {
   nextGame,
   nextRound,
   declareLastGame,
+  endGame,
 } from '../lib/game-engine';
 
 const rooms = new Map<string, ServerRoom>();
@@ -277,6 +278,13 @@ export function registerHandlers(io: Server): void {
       const room = rooms.get(code);
       if (!room || !isHost(room)) return; // host only
       Object.assign(room, declareLastGame(room));
+      broadcast(io, room);
+    });
+
+    socket.on('end-game', ({ code }: { code: string }) => {
+      const room = rooms.get(code);
+      if (!room || !isHost(room)) return; // host only
+      Object.assign(room, endGame(room));
       broadcast(io, room);
     });
 

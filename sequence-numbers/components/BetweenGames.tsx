@@ -18,9 +18,10 @@ interface BetweenGamesProps {
   view: ClientView;
   onNextGame: () => void;
   onLastGame: () => void;
+  onEnd: () => void;
 }
 
-export default function BetweenGames({ view, onNextGame, onLastGame }: BetweenGamesProps) {
+export default function BetweenGames({ view, onNextGame, onLastGame, onEnd }: BetweenGamesProps) {
   const isHost = view.myPlayerId === view.hostId;
   const ranked = [...view.teams].sort((a, b) => b.gameWins - a.gameWins);
   const lastWinner = ranked[0];
@@ -58,14 +59,23 @@ export default function BetweenGames({ view, onNextGame, onLastGame }: BetweenGa
       </div>
 
       {isHost ? (
-        <div style={{ display: 'flex', gap: 10, width: '100%', marginTop: 18 }}>
-          <button className="primary-btn" onClick={onNextGame}>
-            ▶ Next Game
+        <>
+          <div style={{ display: 'flex', gap: 10, width: '100%', marginTop: 18 }}>
+            <button className="primary-btn" onClick={onNextGame}>
+              ▶ Next Game
+            </button>
+            <button className="ghost-btn" onClick={onLastGame}>
+              🏁 Last Game!
+            </button>
+          </div>
+          <button
+            className="ghost-btn"
+            style={{ marginTop: 10, borderColor: '#ef5350', color: '#ef9a9a' }}
+            onClick={onEnd}
+          >
+            ⏹ End Game Now
           </button>
-          <button className="ghost-btn" onClick={onLastGame}>
-            🏁 Last Game!
-          </button>
-        </div>
+        </>
       ) : (
         <div className="waiting-note" style={{ marginTop: 18 }}>
           Waiting for the host to start the next game…

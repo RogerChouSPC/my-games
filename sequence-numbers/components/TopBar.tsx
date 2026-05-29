@@ -20,9 +20,17 @@ interface TopBarProps {
   activePlayer: Player | null;
   myTurn: boolean;
   selfTest?: boolean;
+  onEndGame?: () => void;
 }
 
-export default function TopBar({ teams, sequencesToWin, activePlayer, myTurn, selfTest }: TopBarProps) {
+export default function TopBar({
+  teams,
+  sequencesToWin,
+  activePlayer,
+  myTurn,
+  selfTest,
+  onEndGame,
+}: TopBarProps) {
   const turnColor = activePlayer?.team ? TEAM_HEX[activePlayer.team] : '#888';
   // In self-test the host plays every side, so name the active side instead of "Your Turn".
   const label = selfTest
@@ -47,6 +55,11 @@ export default function TopBar({ teams, sequencesToWin, activePlayer, myTurn, se
             {TEAM_EMOJI[t.color]} {t.sequencesThisGame}/{sequencesToWin}
           </div>
         ))}
+        {onEndGame && (
+          <button className="end-btn" onClick={onEndGame} title="End the game">
+            ⏹ End
+          </button>
+        )}
       </div>
     </div>
   );

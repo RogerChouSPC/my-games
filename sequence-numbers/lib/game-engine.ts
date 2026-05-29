@@ -214,6 +214,11 @@ export function declareLastGame(room: RoomState): RoomState {
   return { ...room, isLastGame: true };
 }
 
+// Host ends the whole session immediately → jump to the final champion screen.
+export function endGame(room: RoomState): RoomState {
+  return finalize({ ...room, roundWinner: null, roundWinnerGif: null });
+}
+
 // Champion = most game wins; tie-break by most sequences in the final game.
 export function finalize(room: RoomState): RoomState {
   const max = Math.max(...room.teams.map((t) => t.gameWins));

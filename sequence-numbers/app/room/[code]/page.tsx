@@ -41,6 +41,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
   const [profile, setProfile] = useState<{ name: string; icon: number } | null>(null);
   const [joined, setJoined] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const [confirmEnd, setConfirmEnd] = useState(false);
 
   // Resolve identity first; show picker if missing.
   useEffect(() => {
@@ -101,17 +102,32 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
     );
   }
 
+  const requestEnd = () => setConfirmEnd(true);
+  const endConfirm = confirmEnd ? (
+    <EndConfirm
+      onCancel={() => setConfirmEnd(false)}
+      onConfirm={() => {
+        emit('end-game', { code });
+        setConfirmEnd(false);
+      }}
+    />
+  ) : null;
+
   // ---- Between games ----
   if (view.phase === 'between') {
     return (
-      <BetweenGames
-        view={view}
-        onNextGame={() => emit('next-game', { code })}
-        onLastGame={() => {
-          emit('declare-last', { code });
-          emit('next-game', { code });
-        }}
-      />
+      <>
+        {endConfirm}
+        <BetweenGames
+          view={view}
+          onNextGame={() => emit('next-game', { code })}
+          onLastGame={() => {
+            emit('declare-last', { code });
+            emit('next-game', { code });
+          }}
+          onEnd={requestEnd}
+        />
+      </>
     );
   }
 
@@ -126,15 +142,17 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
   const activePlayer = view.players.find((p) => p.id === activePlayerId) ?? null;
   // In self-test the host drives whichever seat's turn it is, so they can always act.
   const myTurn = selfTest ? view.myPlayerId === view.hostId : activePlayerId === myId;
+  const myTeam = view.players.find((p) => p.id === myId)?.team ?? null;
   // The team a move counts for: the active seat in self-test, otherwise my own team.
-  const actingTeam = selfTest
-    ? (activePlayer?.team ?? null)
-    : (view.players.find((p) => p.id === myId)?.team ?? null);
+  const actingTeam = selfTest ? (activePlayer?.team ?? null) : myTeam;
   const selectedCard = view.myHand.find((c) => c.id === selectedCardId) ?? null;
+  const frozen = view.roundWinner !== null; // a team has won; board is paused
 
-  // Which cells can the selected card legally target?
+  // Which cells could the selected card target? Shown even when it's NOT your turn,
+  // so waiting players can preview their options (they just can't place yet).
+  const previewTeam = myTurn ? actingTeam : myTeam; // preview against your own team's view
   const targetable = new Set<number>();
-  if (myTurn && selectedCard) {
+  if (selectedCard && !frozen) {
     if (selectedCard.kind === 'number') {
       view.board.forEach((c) => {
         if (c.owner === null && c.value === selectedCard.target) targetable.add(c.index);
@@ -145,14 +163,13 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
       });
     } else if (selectedCard.kind === 'minus') {
       view.board.forEach((c) => {
-        if (c.owner !== null && c.owner !== actingTeam && !c.inSequence) targetable.add(c.index);
+        if (c.owner !== null && c.owner !== previewTeam && !c.inSequence) targetable.add(c.index);
       });
     }
   }
 
-  const frozen = view.roundWinner !== null; // a team has won; board is paused
   const handlePick = (cellIndex: number) => {
-    if (!selectedCard || !myTurn || frozen) return;
+    if (!selectedCard || !myTurn || frozen) return; // can preview, but only place on your turn
     const evt =
       selectedCard.kind === 'number'
         ? 'play-number'
@@ -167,10 +184,20 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
   const winnerTeam = view.teams.find((t) => t.color === view.roundWinner) ?? null;
   const winnerPlayers = view.players.filter((p) => p.team === view.roundWinner && !p.isSeat);
 
+  const badgeTeam = myTeam ?? (selfTest ? activePlayer?.team ?? null : null);
+
   return (
     <div className="game-wrap">
+      {endConfirm}
       <FloatingReactions reaction={reaction} />
       <SuperSequence event={superEvent} />
+
+      {badgeTeam && (
+        <div className="team-badge">
+          <span className={`mini-chip ${badgeTeam}`} />
+          <span className="lbl">{selfTest ? `Now: ${badgeTeam}` : `You: ${badgeTeam}`}</span>
+        </div>
+      )}
 
       {frozen && (
         <div className="win-overlay">
@@ -202,6 +229,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
         activePlayer={activePlayer}
         myTurn={myTurn}
         selfTest={selfTest}
+        onEndGame={isHost ? requestEnd : undefined}
       />
       <PlayerStrip players={view.players} activePlayerId={activePlayerId} />
       <Board
@@ -223,6 +251,32 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
           setSelectedCardId(null);
         }}
       />
+    </div>
+  );
+}
+
+function EndConfirm({ onCancel, onConfirm }: { onCancel: () => void; onConfirm: () => void }) {
+  return (
+    <div className="overlay">
+      <div className="modal" style={{ maxWidth: 340, textAlign: 'center' }}>
+        <div style={{ fontSize: 34, marginBottom: 8 }}>⏹️</div>
+        <div style={{ fontWeight: 700, marginBottom: 8 }}>End the game?</div>
+        <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 18 }}>
+          This ends the session for everyone and jumps to the final results. You can&apos;t undo it.
+        </div>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button className="ghost-btn" onClick={onCancel}>
+            Cancel
+          </button>
+          <button
+            className="primary-btn"
+            style={{ background: 'linear-gradient(135deg, #ef5350, #b71c1c)' }}
+            onClick={onConfirm}
+          >
+            End Game
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

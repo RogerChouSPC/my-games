@@ -28,7 +28,9 @@ export default function HandCards({
   return (
     <div className="hand-area">
       <div className="hand-label">
-        {myTurn ? '🃏 Tap a card, then tap the matching circle on the board' : '🃏 Your hand'}
+        {myTurn
+          ? '🃏 Tap a card, then tap the matching circle on the board'
+          : '🃏 Tap a card to preview your options — wait for your turn to place'}
       </div>
       <div className="hand-cards">
         {hand.map((card) => {
@@ -44,7 +46,7 @@ export default function HandCards({
                 key={card.id}
                 className={`hand-card${active ? ' active' : ''}`}
                 style={{ background: '#111' }}
-                onClick={() => myTurn && onSelect(card.id)}
+                onClick={() => onSelect(card.id)}
               >
                 <div className="card-corner-tl">
                   {sym}
@@ -69,7 +71,7 @@ export default function HandCards({
             <div
               key={card.id}
               className={`hand-card${active ? ' active' : ''}${dead ? ' dead' : ''}`}
-              onClick={() => myTurn && !dead && onSelect(card.id)}
+              onClick={() => !dead && onSelect(card.id)}
             >
               {dead && (
                 <span

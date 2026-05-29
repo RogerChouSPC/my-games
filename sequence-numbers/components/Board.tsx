@@ -18,7 +18,10 @@ export default function Board({ cells, size, targetable, lastMoveIndex, onPick }
           <div className="board-label">− MINUS REMOVE CHIP</div>
           <div className="board-label">+ PLUS ARE WILD</div>
         </div>
-        <div className="board-grid" style={{ gridTemplateColumns: `repeat(${size}, 1fr)` }}>
+        <div
+          className={`board-grid${targetable.size > 0 ? ' has-targets' : ''}`}
+          style={{ gridTemplateColumns: `repeat(${size}, 1fr)` }}
+        >
           {cells.map((cell) => {
             const row = Math.floor(cell.index / size);
             const topHalf = row < size / 2; // top half rendered upside-down like the physical board

@@ -19,10 +19,17 @@ interface TopBarProps {
   sequencesToWin: number;
   activePlayer: Player | null;
   myTurn: boolean;
+  selfTest?: boolean;
 }
 
-export default function TopBar({ teams, sequencesToWin, activePlayer, myTurn }: TopBarProps) {
+export default function TopBar({ teams, sequencesToWin, activePlayer, myTurn, selfTest }: TopBarProps) {
   const turnColor = activePlayer?.team ? TEAM_HEX[activePlayer.team] : '#888';
+  // In self-test the host plays every side, so name the active side instead of "Your Turn".
+  const label = selfTest
+    ? `Playing: ${activePlayer?.name ?? '...'}`
+    : myTurn
+      ? 'Your Turn!'
+      : `${activePlayer?.name ?? '...'}'s turn`;
   return (
     <div className="topbar">
       <div
@@ -31,7 +38,7 @@ export default function TopBar({ teams, sequencesToWin, activePlayer, myTurn }: 
       >
         <span className="turn-dot" style={{ background: turnColor }} />
         <span className="turn-text" style={{ color: turnColor }}>
-          {myTurn ? 'Your Turn!' : `${activePlayer?.name ?? '...'}'s turn`}
+          {label}
         </span>
       </div>
       <div className="score-row">

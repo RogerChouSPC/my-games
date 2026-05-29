@@ -1,7 +1,7 @@
 import type { RoomState, Card, TeamColor, ServerRoom } from '@/types/game';
 import { buildBoard, sequenceLengthFor } from './board-layout';
 import { buildDeck, shuffle } from './deck';
-import { findCompletedSequences, findBumpyCells } from './sequences';
+import { findCompletedSequences, sequenceCells, findBumpyCells } from './sequences';
 
 function teamOf(room: RoomState, playerId: string): TeamColor {
   const p = room.players.find((p) => p.id === playerId);
@@ -22,11 +22,13 @@ function recomputeBoardFlags(room: RoomState): RoomState {
   const inSeq = new Set<number>();
   const bumpyAll = new Set<number>();
   const seqCount: Record<string, number> = {};
+  let superCount = 0;
 
   for (const t of uniqueTeams(room)) {
-    const seqs = findCompletedSequences(owners, freeIdx, size, need, t);
-    seqCount[t] = seqs.length;
-    seqs.forEach((seg) => seg.forEach((i) => inSeq.add(i)));
+    const runs = findCompletedSequences(owners, freeIdx, size, need, t);
+    seqCount[t] = runs.reduce((n, run) => n + (run.length >= size ? 2 : 1), 0);
+    superCount += runs.filter((run) => run.length >= size).length;
+    sequenceCells(owners, freeIdx, size, need, t).forEach((i) => inSeq.add(i));
     findBumpyCells(owners, freeIdx, size, need, t).forEach((i) => bumpyAll.add(i));
   }
 
@@ -36,7 +38,7 @@ function recomputeBoardFlags(room: RoomState): RoomState {
     bumpy: bumpyAll.has(c.index) && !inSeq.has(c.index),
   }));
   const teams = room.teams.map((t) => ({ ...t, sequencesThisGame: seqCount[t.color] ?? 0 }));
-  return { ...room, board, teams };
+  return { ...room, board, teams, superCount };
 }
 
 function advanceTurn(room: RoomState): RoomState {
@@ -52,24 +54,37 @@ function drawOne(room: ServerRoom, playerId: string): ServerRoom {
 }
 
 function checkWin(room: RoomState): RoomState {
+  if (room.roundWinner) return room; // already won, awaiting host
   const winnerTeam = room.teams.find((t) => t.sequencesThisGame >= room.settings.sequencesToWin);
   if (!winnerTeam) return room;
   const teams = room.teams.map((t) =>
     t.color === winnerTeam.color ? { ...t, gameWins: t.gameWins + 1 } : t
   );
-  return { ...room, teams, phase: 'between' };
+  // Freeze on the board (phase stays 'playing') until the host presses Next.
+  return { ...room, teams, roundWinner: winnerTeam.color };
+}
+
+// Host advances from the frozen winning board: to the score screen, or the final
+// champion screen if this was the last game.
+export function nextRound(room: RoomState): RoomState {
+  if (!room.roundWinner) return room;
+  const cleared = { ...room, roundWinner: null, roundWinnerGif: null };
+  return room.isLastGame ? finalize(cleared) : { ...cleared, phase: 'between' };
 }
 
 export function startGame(room: RoomState, firstPlayerId?: string): ServerRoom {
   const size = room.settings.boardSize;
   const board = buildBoard(size);
   let deck = shuffle(buildDeck(board, room.settings));
+  // In self-test, synthetic seats are the players; otherwise everyone plays.
+  const seatPlayers = room.players.filter((p) => p.isSeat);
+  const playing = seatPlayers.length > 0 ? seatPlayers : room.players;
   const hands: Record<string, Card[]> = {};
-  for (const p of room.players) {
+  for (const p of playing) {
     hands[p.id] = deck.slice(0, room.settings.cardsPerPlayer);
     deck = deck.slice(room.settings.cardsPerPlayer);
   }
-  const turnOrder = shuffle(room.players.map((p) => p.id));
+  const turnOrder = shuffle(playing.map((p) => p.id));
   let currentTurn = 0;
   if (firstPlayerId) {
     const idx = turnOrder.indexOf(firstPlayerId);
@@ -84,6 +99,9 @@ export function startGame(room: RoomState, firstPlayerId?: string): ServerRoom {
     turnOrder,
     currentTurn,
     lastMove: null,
+    roundWinner: null,
+    roundWinnerGif: null,
+    superCount: 0,
     teams: room.teams.map((t) => ({ ...t, sequencesThisGame: 0 })),
     _deck: deck,
   };
@@ -95,6 +113,7 @@ export function playNumberCard(
   cardId: string,
   cellIndex: number
 ): ServerRoom {
+  if (room.roundWinner) return room; // board frozen after a win
   if (room.turnOrder[room.currentTurn] !== playerId) return room;
   const cell = room.board[cellIndex];
   if (!cell || cell.owner !== null || cell.value === 'FREE') return room;
@@ -111,7 +130,7 @@ export function playNumberCard(
   next = recomputeBoardFlags(next) as ServerRoom;
   next = drawOne(next, playerId);
   next = checkWin(next) as ServerRoom;
-  if (next.phase === 'playing') next = advanceTurn(next) as ServerRoom;
+  if (next.phase === 'playing' && !next.roundWinner) next = advanceTurn(next) as ServerRoom;
   return next;
 }
 
@@ -121,6 +140,7 @@ export function playPlusCard(
   cardId: string,
   cellIndex: number
 ): ServerRoom {
+  if (room.roundWinner) return room; // board frozen after a win
   if (room.turnOrder[room.currentTurn] !== playerId) return room;
   const cell = room.board[cellIndex];
   if (!cell || cell.owner !== null || cell.value === 'FREE') return room;
@@ -137,7 +157,7 @@ export function playPlusCard(
   next = recomputeBoardFlags(next) as ServerRoom;
   next = drawOne(next, playerId);
   next = checkWin(next) as ServerRoom;
-  if (next.phase === 'playing') next = advanceTurn(next) as ServerRoom;
+  if (next.phase === 'playing' && !next.roundWinner) next = advanceTurn(next) as ServerRoom;
   return next;
 }
 
@@ -147,6 +167,7 @@ export function playMinusCard(
   cardId: string,
   cellIndex: number
 ): ServerRoom {
+  if (room.roundWinner) return room; // board frozen after a win
   if (room.turnOrder[room.currentTurn] !== playerId) return room;
   const cell = room.board[cellIndex];
   const myTeam = teamOf(room, playerId);
@@ -163,12 +184,13 @@ export function playMinusCard(
   };
   next = recomputeBoardFlags(next) as ServerRoom;
   next = drawOne(next, playerId);
-  if (next.phase === 'playing') next = advanceTurn(next) as ServerRoom;
+  if (next.phase === 'playing' && !next.roundWinner) next = advanceTurn(next) as ServerRoom;
   return next;
 }
 
 // A number card is "dead" when every board cell with its target is already owned.
 export function swapDeadCard(room: ServerRoom, playerId: string, cardId: string): ServerRoom {
+  if (room.roundWinner) return room; // board frozen after a win
   if (room.turnOrder[room.currentTurn] !== playerId) return room;
   const hand = room.hands[playerId] ?? [];
   const card = hand.find((c) => c.id === cardId);

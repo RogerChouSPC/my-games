@@ -12,5 +12,9 @@ export default function Chip({
   const cls = ['chip', `chip-${team}`];
   if (bumpy) cls.push('bumpy');
   if (inSequence) cls.push('in-sequence');
-  return <div className={cls.join(' ')} />;
+  return (
+    <div className={cls.join(' ')}>
+      {inSequence && <span className="chip-star">★</span>}
+    </div>
+  );
 }

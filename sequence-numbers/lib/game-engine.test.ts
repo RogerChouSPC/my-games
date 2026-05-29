@@ -6,6 +6,7 @@ import {
   playMinusCard,
   swapDeadCard,
   nextGame,
+  nextRound,
   declareLastGame,
   finalize,
 } from './game-engine';
@@ -16,6 +17,7 @@ function baseRoom(): RoomState {
     code: 'TEST',
     phase: 'lobby',
     settings: {
+      mode: 'teams',
       boardSize: 8,
       teamCount: 2,
       sequencesToWin: 2,
@@ -40,6 +42,9 @@ function baseRoom(): RoomState {
     hostId: 'p1',
     isLastGame: false,
     winners: null,
+    roundWinner: null,
+    roundWinnerGif: null,
+    superCount: 0,
   };
 }
 
@@ -130,8 +135,23 @@ describe('bumpy + win', () => {
     [24, 25, 26, 27].forEach((i) => place(i, 'p1'));
     expect([24, 25, 26, 27].every((i) => r.board[i].bumpy)).toBe(true);
     place(28, 'p1');
-    expect(r.phase).toBe('between');
+    // Win freezes the board (phase stays 'playing') with roundWinner set, awaiting the host.
+    expect(r.phase).toBe('playing');
+    expect(r.roundWinner).toBe('red');
     expect(r.teams.find((t) => t.color === 'red')!.gameWins).toBe(1);
+    expect([24, 25, 26, 27, 28].every((i) => r.board[i].inSequence)).toBe(true);
+  });
+
+  it('nextRound moves a frozen win to the score screen (or final on last game)', () => {
+    let r = startGame(baseRoom(), 'p1');
+    r = { ...r, roundWinner: 'red' };
+    const after = nextRound(r);
+    expect(after.phase).toBe('between');
+    expect(after.roundWinner).toBe(null);
+
+    const lastGame = nextRound({ ...r, isLastGame: true, roundWinner: 'red' });
+    expect(lastGame.phase).toBe('final');
+    expect(lastGame.winners).toBe('red');
   });
 });
 

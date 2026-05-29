@@ -41,11 +41,17 @@ export interface ReactionEvent {
   key: number;
 }
 
+export interface SuperEvent {
+  gif: string | null;
+  key: number;
+}
+
 export function useSocket() {
   const ref = useRef<Socket | null>(null);
   const [view, setView] = useState<ClientView | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reaction, setReaction] = useState<ReactionEvent | null>(null);
+  const [superEvent, setSuperEvent] = useState<SuperEvent | null>(null);
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
@@ -57,6 +63,9 @@ export function useSocket() {
     s.on('error-msg', (m: string) => setError(m));
     s.on('reaction', (r: { playerId: string; emoji: string }) =>
       setReaction({ ...r, key: Date.now() + Math.random() })
+    );
+    s.on('super-sequence', (e: { gif: string | null }) =>
+      setSuperEvent({ gif: e.gif, key: Date.now() + Math.random() })
     );
     return () => {
       s.close();
@@ -71,5 +80,14 @@ export function useSocket() {
     ref.current?.on('joined', ({ code }: { code: string }) => cb(code));
   }, []);
 
-  return { view, error, reaction, connected, emit, onJoined, clearError: () => setError(null) };
+  return {
+    view,
+    error,
+    reaction,
+    superEvent,
+    connected,
+    emit,
+    onJoined,
+    clearError: () => setError(null),
+  };
 }

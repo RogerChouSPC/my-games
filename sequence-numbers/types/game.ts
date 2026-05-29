@@ -2,9 +2,15 @@ export type TeamColor = 'red' | 'blue' | 'green' | 'yellow';
 export type BoardSize = 8 | 9;
 export type Phase = 'lobby' | 'playing' | 'between' | 'final';
 
+// teams    = players grouped into 2-4 teams (manual assignment)
+// solo     = each player is their own side, auto-assigned a color (1v1 up to 4 players)
+// selftest = a single person controls every side (hotseat, for testing)
+export type GameMode = 'teams' | 'solo' | 'selftest';
+
 export interface Settings {
+  mode: GameMode;
   boardSize: BoardSize;
-  teamCount: 2 | 3 | 4;
+  teamCount: 2 | 3 | 4; // teams: # teams · solo: # players · selftest: # sides
   sequencesToWin: number; // 1..4
   cardsPerPlayer: number; // 2..5
   plusCards: number; // 0..4 (per deck)
@@ -17,6 +23,7 @@ export interface Player {
   icon: number; // 1..26
   team: TeamColor | null;
   connected: boolean;
+  isSeat?: boolean; // synthetic seat in self-test mode (controlled by the host)
 }
 
 export type CardKind = 'number' | 'plus' | 'minus';
@@ -60,7 +67,10 @@ export interface RoomState {
   lastMove: { index: number; playerId: string } | null;
   hostId: string;
   isLastGame: boolean;
-  winners: TeamColor | null; // set in 'final'
+  winners: TeamColor | null; // overall champion, set in 'final'
+  roundWinner: TeamColor | null; // team that just won this game; board freezes until host continues
+  roundWinnerGif: string | null; // random celebration gif shown centre-board on a win
+  superCount: number; // total full-length-line ("super") sequences on the board
 }
 
 // Server-only state extends RoomState with the live deck (never sent to clients).

@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import type { Server, Socket } from 'socket.io';
 import type { RoomState, Settings, ServerRoom, ClientView, TeamColor, PlayerInput } from '@/types/game';
 import {
@@ -7,27 +9,52 @@ import {
   playMinusCard,
   swapDeadCard,
   nextGame,
+  nextRound,
   declareLastGame,
-  finalize,
 } from '../lib/game-engine';
 
 const rooms = new Map<string, ServerRoom>();
 const playerSocket = new Map<string, string>(); // playerId → socket.id
+
+// Pick a random image/gif from public/<folder>. Returns a URL path, or null if the folder
+// is empty/missing (the client then shows a built-in fallback animation).
+const IMG_RE = /\.(gif|png|jpe?g|webp|avif)$/i;
+function randomGif(folder: string): string | null {
+  try {
+    const dir = path.join(process.cwd(), 'public', folder);
+    const files = fs.readdirSync(dir).filter((f) => IMG_RE.test(f));
+    if (files.length === 0) return null;
+    const pick = files[Math.floor(Math.random() * files.length)];
+    return `/${folder}/${encodeURIComponent(pick)}`;
+  } catch {
+    return null;
+  }
+}
 
 function makeCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   return Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
 }
 
+const COLORS: TeamColor[] = ['red', 'blue', 'green', 'yellow'];
+
 function teamsFor(n: number) {
-  const order: TeamColor[] = ['red', 'blue', 'green', 'yellow'];
-  return order.slice(0, n).map((color) => ({ color, sequencesThisGame: 0, gameWins: 0 }));
+  return COLORS.slice(0, n).map((color) => ({ color, sequencesThisGame: 0, gameWins: 0 }));
+}
+
+function sideName(c: TeamColor): string {
+  return `${c.charAt(0).toUpperCase()}${c.slice(1)} Side`;
 }
 
 function viewFor(room: ServerRoom, playerId: string): ClientView {
-  // Strip server-only fields (hands of others, the live deck).
+  // Strip server-only fields (other players' hands, the live deck).
   const { hands, _deck, ...rest } = room;
-  return { ...rest, myHand: hands[playerId] ?? [], myPlayerId: playerId };
+  // In self-test the host plays every side, so show the active seat's hand.
+  const handOwner =
+    room.settings.mode === 'selftest' && playerId === room.hostId && room.phase === 'playing'
+      ? room.turnOrder[room.currentTurn]
+      : playerId;
+  return { ...rest, myHand: hands[handOwner] ?? [], myPlayerId: playerId };
 }
 
 function broadcast(io: Server, room: ServerRoom): void {
@@ -47,11 +74,13 @@ export function registerHandlers(io: Server): void {
     socket.on('create-room', ({ player, settings }: { player: PlayerInput; settings: Settings }) => {
       let code = makeCode();
       while (rooms.has(code)) code = makeCode();
+      // In solo, the creator is the first side (red). Teams/self-test start unassigned.
+      const hostTeam: TeamColor | null = settings.mode === 'solo' ? 'red' : null;
       const room: ServerRoom = {
         code,
         phase: 'lobby',
         settings,
-        players: [{ ...player, team: null, connected: true }],
+        players: [{ ...player, team: hostTeam, connected: true }],
         teams: teamsFor(settings.teamCount),
         board: [],
         hands: {},
@@ -62,6 +91,9 @@ export function registerHandlers(io: Server): void {
         hostId: player.id,
         isLastGame: false,
         winners: null,
+        roundWinner: null,
+        roundWinnerGif: null,
+        superCount: 0,
         _deck: [],
       };
       rooms.set(code, room);
@@ -85,7 +117,22 @@ export function registerHandlers(io: Server): void {
         existing.name = player.name || existing.name;
         existing.icon = player.icon || existing.icon;
       } else if (room.phase === 'lobby') {
-        room.players.push({ ...player, team: null, connected: true });
+        if (room.settings.mode === 'selftest') {
+          socket.emit('error-msg', 'This is a self-test room (single player)');
+          return;
+        }
+        if (room.settings.mode === 'solo') {
+          // Each player gets their own colour; cap players at the number of sides.
+          const used = new Set(room.players.map((p) => p.team).filter(Boolean));
+          const free = COLORS.slice(0, room.settings.teamCount).find((c) => !used.has(c));
+          if (!free) {
+            socket.emit('error-msg', 'Room is full');
+            return;
+          }
+          room.players.push({ ...player, team: free, connected: true });
+        } else {
+          room.players.push({ ...player, team: null, connected: true });
+        }
       } else {
         socket.emit('error-msg', 'Game already started');
         return;
@@ -101,6 +148,16 @@ export function registerHandlers(io: Server): void {
     // The trusted actor for any action is the id bound to THIS socket, never the payload.
     const actorId = (): string | undefined => socket.data.playerId;
     const isHost = (room: ServerRoom): boolean => room.hostId === socket.data.playerId;
+
+    // Who a move applies to: normally yourself; in self-test the host drives the active seat.
+    const resolveActor = (room: ServerRoom): string | undefined => {
+      const me = actorId();
+      if (!me) return undefined;
+      if (room.settings.mode === 'selftest') {
+        return room.hostId === me ? room.turnOrder[room.currentTurn] : undefined;
+      }
+      return me;
+    };
 
     socket.on('assign-team', ({ code, playerId, team }: { code: string; playerId: string; team: TeamColor | null }) => {
       const room = rooms.get(code);
@@ -118,7 +175,32 @@ export function registerHandlers(io: Server): void {
       const room = rooms.get(code);
       if (!room || room.phase !== 'lobby') return;
       if (!isHost(room)) return; // host only
-      if (room.players.some((p) => p.team === null)) return; // all players must have a team
+
+      if (room.settings.mode === 'selftest') {
+        // Build one synthetic seat per side; the host controls them all.
+        const sideColors = COLORS.slice(0, room.settings.teamCount);
+        const host = room.players.find((p) => p.id === room.hostId)!;
+        const seats = sideColors.map((color, i) => ({
+          id: `seat-${color}`,
+          name: sideName(color),
+          icon: ((host.icon + i) % 26) + 1,
+          team: color,
+          connected: true,
+          isSeat: true,
+        }));
+        // Keep the host as a non-playing controller; seats are the players in turn order.
+        room.players = [{ ...host, team: null, isSeat: false }, ...seats];
+        Object.assign(room, startGame(room));
+        broadcast(io, room);
+        return;
+      }
+
+      // teams / solo: every player must have a side, and need at least two sides in play.
+      if (room.players.some((p) => p.team === null)) return;
+      const sidesInPlay = new Set(room.players.map((p) => p.team));
+      if (sidesInPlay.size < 2) return;
+      // Teams mode: every configured team must have at least one player.
+      if (room.settings.mode === 'teams' && sidesInPlay.size < room.settings.teamCount) return;
       Object.assign(room, startGame(room));
       broadcast(io, room);
     });
@@ -126,21 +208,23 @@ export function registerHandlers(io: Server): void {
     const applyAndBroadcast = (code: string, next: ServerRoom) => {
       const room = rooms.get(code);
       if (!room) return;
+      const superGained = next.superCount > room.superCount; // a full line was just formed
+      const justWon = !room.roundWinner && !!next.roundWinner; // a team just won
       let result = next;
-      if (result.phase === 'between' && result.isLastGame) {
-        result = finalize(result) as ServerRoom;
-      }
+      if (justWon) result = { ...result, roundWinnerGif: randomGif('winner') };
       Object.assign(room, result);
       broadcast(io, room);
+      if (superGained) io.to(code).emit('super-sequence', { gif: randomGif('super-sequence') });
     };
 
     socket.on(
       'play-number',
       ({ code, cardId, cellIndex }: { code: string; cardId: string; cellIndex: number }) => {
         const room = rooms.get(code);
-        const me = actorId();
-        if (!room || !me) return;
-        applyAndBroadcast(code, playNumberCard(room, me, cardId, cellIndex));
+        if (!room) return;
+        const actor = resolveActor(room);
+        if (!actor) return;
+        applyAndBroadcast(code, playNumberCard(room, actor, cardId, cellIndex));
       }
     );
 
@@ -148,9 +232,10 @@ export function registerHandlers(io: Server): void {
       'play-plus',
       ({ code, cardId, cellIndex }: { code: string; cardId: string; cellIndex: number }) => {
         const room = rooms.get(code);
-        const me = actorId();
-        if (!room || !me) return;
-        applyAndBroadcast(code, playPlusCard(room, me, cardId, cellIndex));
+        if (!room) return;
+        const actor = resolveActor(room);
+        if (!actor) return;
+        applyAndBroadcast(code, playPlusCard(room, actor, cardId, cellIndex));
       }
     );
 
@@ -158,17 +243,27 @@ export function registerHandlers(io: Server): void {
       'play-minus',
       ({ code, cardId, cellIndex }: { code: string; cardId: string; cellIndex: number }) => {
         const room = rooms.get(code);
-        const me = actorId();
-        if (!room || !me) return;
-        applyAndBroadcast(code, playMinusCard(room, me, cardId, cellIndex));
+        if (!room) return;
+        const actor = resolveActor(room);
+        if (!actor) return;
+        applyAndBroadcast(code, playMinusCard(room, actor, cardId, cellIndex));
       }
     );
 
     socket.on('swap-dead', ({ code, cardId }: { code: string; cardId: string }) => {
       const room = rooms.get(code);
-      const me = actorId();
-      if (!room || !me) return;
-      applyAndBroadcast(code, swapDeadCard(room, me, cardId));
+      if (!room) return;
+      const actor = resolveActor(room);
+      if (!actor) return;
+      applyAndBroadcast(code, swapDeadCard(room, actor, cardId));
+    });
+
+    // Host leaves the frozen winning board: go to the score screen (or final champion screen).
+    socket.on('next-round', ({ code }: { code: string }) => {
+      const room = rooms.get(code);
+      if (!room || !isHost(room)) return; // host only
+      Object.assign(room, nextRound(room));
+      broadcast(io, room);
     });
 
     socket.on('next-game', ({ code }: { code: string }) => {
@@ -191,10 +286,16 @@ export function registerHandlers(io: Server): void {
       room.phase = 'lobby';
       room.isLastGame = false;
       room.winners = null;
+      room.roundWinner = null;
+      room.roundWinnerGif = null;
+      room.superCount = 0;
       room.teams = room.teams.map((t) => ({ ...t, sequencesThisGame: 0, gameWins: 0 }));
       room.board = [];
       room.hands = {};
       room._deck = [];
+      room.turnOrder = [];
+      room.currentTurn = 0;
+      room.players = room.players.filter((p) => !p.isSeat); // drop self-test seats
       broadcast(io, room);
     });
 

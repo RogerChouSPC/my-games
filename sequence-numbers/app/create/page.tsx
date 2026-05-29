@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import type { Settings, BoardSize } from '@/types/game';
+import type { Settings, BoardSize, GameMode } from '@/types/game';
 import { useSocket, getPlayerId, getSavedProfile, saveProfile } from '@/lib/client/useSocket';
 import CharacterPicker from '@/components/CharacterPicker';
 
@@ -12,6 +12,7 @@ export default function CreateRoom() {
   const [profile, setProfile] = useState<{ name: string; icon: number } | null>(null);
   const [showPicker, setShowPicker] = useState(false);
 
+  const [mode, setMode] = useState<GameMode>('teams');
   const [boardSize, setBoardSize] = useState<BoardSize>(8);
   const [teamCount, setTeamCount] = useState<2 | 3 | 4>(2);
   const [sequencesToWin, setSequencesToWin] = useState(2);
@@ -41,6 +42,7 @@ export default function CreateRoom() {
       return;
     }
     const settings: Settings = {
+      mode,
       boardSize,
       teamCount,
       sequencesToWin,
@@ -70,6 +72,10 @@ export default function CreateRoom() {
         />
       )}
 
+      <button className="link" onClick={() => router.push('/')} style={{ marginBottom: 8 }}>
+        ← Back
+      </button>
+
       <div className="logo">
         <div className="logo-icon">🎯</div>
         <div className="logo-title" style={{ fontSize: 20 }}>
@@ -78,6 +84,25 @@ export default function CreateRoom() {
       </div>
 
       <div className="card-panel">
+        {/* Game mode */}
+        <div className="field">
+          <div className="field-label">Game Mode</div>
+          <div className="opt-cards">
+            <div className={`opt-card${mode === 'teams' ? ' active' : ''}`} onClick={() => setMode('teams')}>
+              <div className="size" style={{ fontSize: 22 }}>👥</div>
+              <div className="rule">Teams<br />2–4 teams</div>
+            </div>
+            <div className={`opt-card${mode === 'solo' ? ' active' : ''}`} onClick={() => setMode('solo')}>
+              <div className="size" style={{ fontSize: 22 }}>⚔️</div>
+              <div className="rule">Solo<br />each player alone</div>
+            </div>
+            <div className={`opt-card${mode === 'selftest' ? ' active' : ''}`} onClick={() => setMode('selftest')}>
+              <div className="size" style={{ fontSize: 22 }}>🧪</div>
+              <div className="rule">Self-test<br />play all sides</div>
+            </div>
+          </div>
+        </div>
+
         {/* Your identity */}
         <div className="field">
           <div className="field-label">You</div>
@@ -96,9 +121,11 @@ export default function CreateRoom() {
           </div>
         </div>
 
-        {/* Teams */}
+        {/* Number of teams / players / sides */}
         <div className="field">
-          <div className="field-label">Number of Teams</div>
+          <div className="field-label">
+            {mode === 'teams' ? 'Number of Teams' : mode === 'solo' ? 'Number of Players' : 'Number of Sides'}
+          </div>
           <div className="chip-row">
             {[2, 3, 4].map((n) => (
               <button
@@ -106,7 +133,7 @@ export default function CreateRoom() {
                 className={`pill${teamCount === n ? ' active' : ''}`}
                 onClick={() => setTeamCount(n as 2 | 3 | 4)}
               >
-                {n} Teams
+                {n} {mode === 'teams' ? 'Teams' : mode === 'solo' ? 'Players' : 'Sides'}
               </button>
             ))}
           </div>

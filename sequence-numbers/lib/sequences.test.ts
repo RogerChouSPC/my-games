@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { linesThrough, countOwnedInLine, findCompletedSequences, findBumpyCells } from './sequences';
+import {
+  linesThrough,
+  countOwnedInLine,
+  findCompletedSequences,
+  findBumpyCells,
+  countSequences,
+} from './sequences';
 
 function grid(size: number): (string | null)[] {
   return new Array(size * size).fill(null);
@@ -60,5 +66,35 @@ describe('findBumpyCells', () => {
     [57, 58, 59].forEach((i) => (owners[i] = 'red'));
     const bumpy = findBumpyCells(owners, new Set([56, 63]), 8, 5, 'red');
     [57, 58, 59].forEach((i) => expect(bumpy.has(i)).toBe(true));
+  });
+});
+
+describe('countSequences', () => {
+  it('counts an exact 5-in-a-row as 1', () => {
+    const owners = grid(8);
+    [24, 25, 26, 27, 28].forEach((i) => (owners[i] = 'red'));
+    expect(countSequences(owners, new Set(), 8, 5, 'red')).toBe(1);
+  });
+  it('counts a 6- or 7-in-a-row as 1 (not overlapping windows)', () => {
+    const owners = grid(8);
+    [24, 25, 26, 27, 28, 29].forEach((i) => (owners[i] = 'red'));
+    expect(countSequences(owners, new Set(), 8, 5, 'red')).toBe(1);
+  });
+  it('counts a full 8-long line as 2 sequences', () => {
+    const owners = grid(8);
+    // full row 3: indices 24..31
+    for (let i = 24; i <= 31; i++) owners[i] = 'red';
+    expect(countSequences(owners, new Set(), 8, 5, 'red')).toBe(2);
+  });
+  it('counts a full row that uses two FREE corners as 2', () => {
+    const owners = grid(8);
+    // top row 0..7 with corners 0 & 7 FREE, middle 1..6 owned -> full line of 8
+    for (let i = 1; i <= 6; i++) owners[i] = 'red';
+    expect(countSequences(owners, new Set([0, 7]), 8, 5, 'red')).toBe(2);
+  });
+  it('9x9: a full 9-long line counts as 2', () => {
+    const owners = grid(9);
+    for (let i = 9; i <= 17; i++) owners[i] = 'blue'; // row 1, full width
+    expect(countSequences(owners, new Set(), 9, 6, 'blue')).toBe(2);
   });
 });

@@ -17,11 +17,26 @@ import EmojiPanel from '@/components/EmojiPanel';
 import HandCards from '@/components/HandCards';
 import BetweenGames from '@/components/BetweenGames';
 import FinalWinner from '@/components/FinalWinner';
+import FloatingReactions from '@/components/FloatingReactions';
+import SuperSequence from '@/components/SuperSequence';
+
+const TEAM_HEX: Record<string, string> = {
+  red: '#ef5350',
+  blue: '#42a5f5',
+  green: '#66bb6a',
+  yellow: '#ffca28',
+};
+const TEAM_EMOJI: Record<string, string> = {
+  red: '🔴',
+  blue: '🔵',
+  green: '🟢',
+  yellow: '🟡',
+};
 
 export default function RoomPage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = use(params);
   const router = useRouter();
-  const { view, error, reaction, connected, emit } = useSocket();
+  const { view, error, reaction, superEvent, connected, emit } = useSocket();
 
   const [profile, setProfile] = useState<{ name: string; icon: number } | null>(null);
   const [joined, setJoined] = useState(false);
@@ -106,10 +121,15 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
   }
 
   // ---- Playing ----
+  const selfTest = view.settings.mode === 'selftest';
   const activePlayerId = view.turnOrder[view.currentTurn] ?? null;
   const activePlayer = view.players.find((p) => p.id === activePlayerId) ?? null;
-  const myTurn = activePlayerId === myId;
-  const myTeam = view.players.find((p) => p.id === myId)?.team ?? null;
+  // In self-test the host drives whichever seat's turn it is, so they can always act.
+  const myTurn = selfTest ? view.myPlayerId === view.hostId : activePlayerId === myId;
+  // The team a move counts for: the active seat in self-test, otherwise my own team.
+  const actingTeam = selfTest
+    ? (activePlayer?.team ?? null)
+    : (view.players.find((p) => p.id === myId)?.team ?? null);
   const selectedCard = view.myHand.find((c) => c.id === selectedCardId) ?? null;
 
   // Which cells can the selected card legally target?
@@ -125,32 +145,65 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
       });
     } else if (selectedCard.kind === 'minus') {
       view.board.forEach((c) => {
-        if (c.owner !== null && c.owner !== myTeam && !c.inSequence) targetable.add(c.index);
+        if (c.owner !== null && c.owner !== actingTeam && !c.inSequence) targetable.add(c.index);
       });
     }
   }
 
+  const frozen = view.roundWinner !== null; // a team has won; board is paused
   const handlePick = (cellIndex: number) => {
-    if (!selectedCard || !myTurn) return;
+    if (!selectedCard || !myTurn || frozen) return;
     const evt =
       selectedCard.kind === 'number'
         ? 'play-number'
         : selectedCard.kind === 'plus'
           ? 'play-plus'
           : 'play-minus';
-    emit(evt, { code, playerId: myId, cardId: selectedCard.id, cellIndex });
+    emit(evt, { code, cardId: selectedCard.id, cellIndex });
     setSelectedCardId(null);
   };
 
+  const isHost = view.myPlayerId === view.hostId;
+  const winnerTeam = view.teams.find((t) => t.color === view.roundWinner) ?? null;
+  const winnerPlayers = view.players.filter((p) => p.team === view.roundWinner && !p.isSeat);
+
   return (
     <div className="game-wrap">
+      <FloatingReactions reaction={reaction} />
+      <SuperSequence event={superEvent} />
+
+      {frozen && (
+        <div className="win-overlay">
+          <div className="win-card">
+            {view.roundWinnerGif ? (
+              <img src={view.roundWinnerGif} alt="Winner!" className="gif-img" />
+            ) : (
+              <div className="gif-fallback">🏆🎉🏆</div>
+            )}
+            <div className="win-title" style={{ color: TEAM_HEX[view.roundWinner ?? 'red'] }}>
+              {TEAM_EMOJI[view.roundWinner ?? 'red']}{' '}
+              {selfTest ? winnerTeam?.color : winnerPlayers.map((p) => p.name).join(' & ') || view.roundWinner}{' '}
+              wins this game!
+            </div>
+            {isHost ? (
+              <button className="primary-btn" onClick={() => emit('next-round', { code })}>
+                Next ▶
+              </button>
+            ) : (
+              <div className="waiting-note">Waiting for the host to continue…</div>
+            )}
+          </div>
+        </div>
+      )}
+
       <TopBar
         teams={view.teams}
         sequencesToWin={view.settings.sequencesToWin}
         activePlayer={activePlayer}
         myTurn={myTurn}
+        selfTest={selfTest}
       />
-      <PlayerStrip players={view.players} activePlayerId={activePlayerId} reaction={reaction} />
+      <PlayerStrip players={view.players} activePlayerId={activePlayerId} />
       <Board
         cells={view.board}
         size={view.settings.boardSize}
@@ -158,7 +211,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
         lastMoveIndex={view.lastMove?.index ?? null}
         onPick={handlePick}
       />
-      <EmojiPanel onReact={(emoji) => emit('reaction', { code, playerId: myId, emoji })} />
+      <EmojiPanel onReact={(emoji) => emit('reaction', { code, emoji })} />
       <HandCards
         hand={view.myHand}
         board={view.board}
@@ -166,7 +219,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
         myTurn={myTurn}
         onSelect={(id) => setSelectedCardId((cur) => (cur === id ? null : id))}
         onSwapDead={(id) => {
-          emit('swap-dead', { code, playerId: myId, cardId: id });
+          emit('swap-dead', { code, cardId: id });
           setSelectedCardId(null);
         }}
       />

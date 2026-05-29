@@ -1,0 +1,10 @@
+# Repo-wide ignores for the my-games collection
+**/node_modules
+**/.next
+**/.env*.local
+**/.superpowers
+**/memory
+**/*.log
+**/next-env.d.ts
+.playwright-mcp
+*.py

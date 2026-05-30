@@ -215,10 +215,35 @@ describe('stealCard', () => {
     r.turnOrder = ['p1', 'p2'];
     r.currentTurn = 0;
     r.hands['p1'] = [steal()];
-    r.hands['p2'] = [num('a', 5)];
+    r.hands['p2'] = [num('a', 5), num('b', 9)];
     r = stealCard(r, 'p1', 's', 'p2', 0);
     expect(r.hands['p1'].find((c) => c.id === 's')).toBeDefined(); // refused
-    expect(r.hands['p2'].length).toBe(1);
+    expect(r.hands['p2'].length).toBe(2);
+  });
+  it("cannot take a player's last card", () => {
+    let r = startGame(baseRoom(), 'p1');
+    r.turnOrder = ['p1', 'p2'];
+    r.currentTurn = 0;
+    r.hands['p1'] = [steal()];
+    r.hands['p2'] = [num('a', 5)]; // only one card left
+    r = stealCard(r, 'p1', 's', 'p2', 0);
+    expect(r.hands['p1'].find((c) => c.id === 's')).toBeDefined(); // refused, steal kept
+    expect(r.hands['p2'].length).toBe(1); // untouched
+  });
+});
+
+describe('hand refill', () => {
+  it('a short-handed player refills to a full hand when they play (recovering after a steal)', () => {
+    let r = startGame(baseRoom(), 'p1');
+    r.turnOrder = ['p1', 'p2'];
+    r.currentTurn = 0;
+    const cell = r.board.find((c) => c.value !== 'FREE')!;
+    // p1 is two cards short (as if stolen from twice): cardsPerPlayer is 3, but only 1 card.
+    r.hands['p1'] = [
+      { id: 'n', kind: 'number', target: cell.value as number, equation: '1+1', color: '#000' },
+    ];
+    r = playNumberCard(r, 'p1', 'n', cell.index);
+    expect(r.hands['p1'].length).toBe(r.settings.cardsPerPlayer); // drew 3 to refill
   });
 });
 

@@ -34,7 +34,7 @@ export function hasAnyLegalMove(room: RoomState, playerId: string): boolean {
     const t = room.players.find((p) => p.id === pid);
     if (!t) return false;
     if (team && t.team && team === t.team) return false;
-    return (room.hands[pid]?.length ?? 0) > 0;
+    return (room.hands[pid]?.length ?? 0) >= 2; // can't take a player's last card
   });
   for (const card of hand) {
     if (card.kind === 'plus' && emptyPlayable) return true;
@@ -125,6 +125,17 @@ function drawOne(room: ServerRoom, playerId: string): ServerRoom {
   return { ...room, hands, _deck: rest, deckCount: rest.length };
 }
 
+// Refill a player back up to a full hand (cardsPerPlayer), or until the deck runs out.
+// A player who's been stolen from (and is short cards) recovers when they next play.
+function drawToFull(room: ServerRoom, playerId: string): ServerRoom {
+  const target = room.settings.cardsPerPlayer;
+  let next = room;
+  while ((next.hands[playerId]?.length ?? 0) < target && (next._deck?.length ?? 0) > 0) {
+    next = drawOne(next, playerId);
+  }
+  return next;
+}
+
 function checkWin(room: RoomState): RoomState {
   if (room.roundWinner) return room; // already won, awaiting host
   const winnerTeam = room.teams.find((t) => t.sequencesThisGame >= room.settings.sequencesToWin);
@@ -208,7 +219,7 @@ export function playNumberCard(
     lastMove: { index: cellIndex, playerId },
   };
   next = recomputeBoardFlags(next) as ServerRoom;
-  next = drawOne(next, playerId);
+  next = drawToFull(next, playerId);
   next = checkWin(next) as ServerRoom;
   next = checkDraw(next) as ServerRoom;
   if (next.phase === 'playing' && !next.roundWinner && !next.roundTie)
@@ -237,7 +248,7 @@ export function playPlusCard(
     lastMove: { index: cellIndex, playerId },
   };
   next = recomputeBoardFlags(next) as ServerRoom;
-  next = drawOne(next, playerId);
+  next = drawToFull(next, playerId);
   next = checkWin(next) as ServerRoom;
   next = checkDraw(next) as ServerRoom;
   if (next.phase === 'playing' && !next.roundWinner && !next.roundTie)
@@ -268,7 +279,7 @@ export function playMinusCard(
       board: room.board.map((c, i) => (i === cellIndex ? { ...c, shielded: false } : c)),
       hands: { ...room.hands, [playerId]: hand.filter((c) => c.id !== cardId) },
     };
-    blocked = drawOne(blocked, playerId);
+    blocked = drawToFull(blocked, playerId);
     blocked = advanceTurn(blocked) as ServerRoom;
     return blocked;
   }
@@ -280,7 +291,7 @@ export function playMinusCard(
     lastMove: { index: cellIndex, playerId },
   };
   next = recomputeBoardFlags(next) as ServerRoom;
-  next = drawOne(next, playerId);
+  next = drawToFull(next, playerId);
   next = checkDraw(next) as ServerRoom;
   if (next.phase === 'playing' && !next.roundWinner && !next.roundTie)
     next = advanceTurn(next) as ServerRoom;
@@ -348,7 +359,7 @@ export function freezeCard(
     hands: { ...room.hands, [playerId]: hand.filter((c) => c.id !== cardId) },
     frozenPlayerIds: [...frozen, targetId],
   };
-  next = drawOne(next, playerId);
+  next = drawToFull(next, playerId);
   next = advanceTurn(next) as ServerRoom;
   return next;
 }
@@ -373,7 +384,7 @@ export function stealCard(
   if (me.team && target.team && me.team === target.team) return room; // not a teammate
   if (!room.turnOrder.includes(targetPlayerId)) return room; // an active player
   const victimHand = room.hands[targetPlayerId] ?? [];
-  if (victimHand.length === 0) return room; // nothing to steal
+  if (victimHand.length <= 1) return room; // can't take a player's last card
   const idx = Math.max(0, Math.min(Math.floor(cardIndex), victimHand.length - 1));
   const stolen = victimHand[idx];
 
@@ -414,7 +425,7 @@ export function shieldCard(
     board: room.board.map((c, i) => (valid.includes(i) ? { ...c, shielded: true } : c)),
     hands: { ...room.hands, [playerId]: hand.filter((c) => c.id !== cardId) },
   };
-  next = drawOne(next, playerId);
+  next = drawToFull(next, playerId);
   next = advanceTurn(next) as ServerRoom;
   return next;
 }
@@ -481,7 +492,7 @@ export function bombCard(
     lastMove: { index: row * size + col, playerId },
   };
   next = recomputeBoardFlags(next) as ServerRoom;
-  next = drawOne(next, playerId);
+  next = drawToFull(next, playerId);
   next = checkDraw(next) as ServerRoom;
   if (next.phase === 'playing' && !next.roundWinner && !next.roundTie)
     next = advanceTurn(next) as ServerRoom;

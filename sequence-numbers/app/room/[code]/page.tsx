@@ -242,7 +242,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
       const t = view.players.find((p) => p.id === pid);
       if (!t) continue;
       if (actingTeam && t.team && actingTeam === t.team) continue;
-      if ((view.handCounts[pid] ?? 0) === 0) continue;
+      if ((view.handCounts[pid] ?? 0) < 2) continue; // can't steal someone's last card
       eligibleStealTargets.add(pid);
     }
   }

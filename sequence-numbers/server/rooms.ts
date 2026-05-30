@@ -14,6 +14,7 @@ import {
   declareLastGame,
   endGame,
 } from '../lib/game-engine';
+import { applySettingsUpdate } from '../lib/settings';
 
 const rooms = new Map<string, ServerRoom>();
 const playerSocket = new Map<string, string>(); // playerId → socket.id
@@ -171,6 +172,13 @@ export function registerHandlers(io: Server): void {
       if (playerId !== me && !isHost(room)) return;
       const p = room.players.find((p) => p.id === playerId);
       if (p) p.team = team;
+      broadcast(io, room);
+    });
+
+    socket.on('update-settings', ({ code, settings }: { code: string; settings: Partial<Settings> }) => {
+      const room = rooms.get(code);
+      if (!room || room.phase !== 'lobby' || !isHost(room)) return; // host-only, lobby-only
+      room.settings = applySettingsUpdate(room.settings, settings ?? {});
       broadcast(io, room);
     });
 

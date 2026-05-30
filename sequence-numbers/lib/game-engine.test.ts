@@ -6,6 +6,7 @@ import {
   playMinusCard,
   swapDeadCard,
   discardCard,
+  freezeCard,
   hasAnyLegalMove,
   nextGame,
   nextRound,
@@ -26,6 +27,11 @@ function baseRoom(): RoomState {
       cardsPerPlayer: 3,
       plusCards: 2,
       minusCards: 2,
+      freezeCards: 0,
+      stealCards: 0,
+      shieldCards: 0,
+      bombCards: 0,
+      rerollCards: 0,
     },
     players: [
       { id: 'p1', name: 'A', icon: 1, team: 'red', connected: true },
@@ -48,6 +54,7 @@ function baseRoom(): RoomState {
     roundWinnerGif: null,
     roundTie: false,
     superCount: 0,
+    frozenPlayerIds: [],
   };
 }
 
@@ -140,6 +147,43 @@ describe('playMinusCard', () => {
     r.currentTurn = r.turnOrder.indexOf('p2');
     r = playMinusCard(r, 'p2', 'm', 26);
     expect(r.board[26].owner).toBe('red'); // locked — still red
+  });
+});
+
+describe('freezeCard', () => {
+  const freeze = () => ({ id: 'f', kind: 'freeze' as const, target: null, equation: null, color: null });
+
+  it("skips the frozen opponent's next turn, then thaws them", () => {
+    let r = startGame(baseRoom(), 'p1');
+    r.turnOrder = ['p1', 'p2'];
+    r.currentTurn = 0;
+    r.hands['p1'] = [freeze()];
+    r = freezeCard(r, 'p1', 'f', 'p2');
+    // p1 spent their turn; p2 is frozen so their turn is skipped → back to p1, p2 thawed.
+    expect(r.turnOrder[r.currentTurn]).toBe('p1');
+    expect(r.frozenPlayerIds).not.toContain('p2');
+    expect(r.hands['p1'].find((c) => c.id === 'f')).toBeUndefined();
+  });
+
+  it('cannot freeze a teammate (and does not consume the card)', () => {
+    let r = startGame(baseRoom(), 'p1');
+    r.players = r.players.map((p) => ({ ...p, team: 'red' })); // both on red
+    r.turnOrder = ['p1', 'p2'];
+    r.currentTurn = 0;
+    r.hands['p1'] = [freeze()];
+    r = freezeCard(r, 'p1', 'f', 'p2');
+    expect(r.frozenPlayerIds).toEqual([]);
+    expect(r.hands['p1'].find((c) => c.id === 'f')).toBeDefined();
+  });
+
+  it('cannot freeze a player who is already frozen', () => {
+    let r = startGame(baseRoom(), 'p1');
+    r.turnOrder = ['p1', 'p2'];
+    r.currentTurn = 0;
+    r.frozenPlayerIds = ['p2'];
+    r.hands['p1'] = [freeze()];
+    r = freezeCard(r, 'p1', 'f', 'p2');
+    expect(r.hands['p1'].find((c) => c.id === 'f')).toBeDefined(); // refused, card kept
   });
 });
 

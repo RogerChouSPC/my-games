@@ -11,5 +11,10 @@ export function applySettingsUpdate(current: Settings, patch: Partial<Settings>)
   if (typeof patch.cardsPerPlayer === 'number') next.cardsPerPlayer = clamp(patch.cardsPerPlayer, 2, 5);
   if (typeof patch.plusCards === 'number') next.plusCards = clamp(patch.plusCards, 0, 4);
   if (typeof patch.minusCards === 'number') next.minusCards = clamp(patch.minusCards, 0, 4);
+  if (typeof patch.freezeCards === 'number') next.freezeCards = clamp(patch.freezeCards, 0, 4);
+  if (typeof patch.stealCards === 'number') next.stealCards = clamp(patch.stealCards, 0, 4);
+  if (typeof patch.shieldCards === 'number') next.shieldCards = clamp(patch.shieldCards, 0, 4);
+  if (typeof patch.bombCards === 'number') next.bombCards = clamp(patch.bombCards, 0, 4);
+  if (typeof patch.rerollCards === 'number') next.rerollCards = clamp(patch.rerollCards, 0, 4);
   return next;
 }

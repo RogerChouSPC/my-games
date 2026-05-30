@@ -18,11 +18,19 @@ export function hasAnyLegalMove(room: RoomState, playerId: string): boolean {
   const hand = room.hands[playerId] ?? [];
   const emptyPlayable = room.board.some((c) => c.owner === null && c.value !== 'FREE');
   const removableOpp = room.board.some(
-    (c) => c.owner !== null && c.owner !== team && !c.inSequence
+    (c) => c.owner !== null && c.owner !== team && !c.inSequence && !c.shielded
   );
+  const hasFreezeTarget = room.turnOrder.some((pid) => {
+    if (pid === playerId) return false;
+    const t = room.players.find((p) => p.id === pid);
+    if (!t) return false;
+    if (team && t.team && team === t.team) return false;
+    return !(room.frozenPlayerIds ?? []).includes(pid);
+  });
   for (const card of hand) {
     if (card.kind === 'plus' && emptyPlayable) return true;
     if (card.kind === 'minus' && removableOpp) return true;
+    if (card.kind === 'freeze' && hasFreezeTarget) return true;
     if (card.kind === 'number' && room.board.some((c) => c.owner === null && c.value === card.target))
       return true;
   }
@@ -71,7 +79,22 @@ function recomputeBoardFlags(room: RoomState): RoomState {
 }
 
 function advanceTurn(room: RoomState): RoomState {
-  return { ...room, currentTurn: (room.currentTurn + 1) % room.turnOrder.length };
+  const n = room.turnOrder.length;
+  if (n === 0) return room;
+  let frozen = room.frozenPlayerIds ?? [];
+  let idx = room.currentTurn;
+  // Walk forward to the next player; any frozen player along the way is skipped
+  // and thawed (their ice shatters as their turn passes).
+  for (let step = 0; step < n; step++) {
+    idx = (idx + 1) % n;
+    const pid = room.turnOrder[idx];
+    if (frozen.includes(pid)) {
+      frozen = frozen.filter((f) => f !== pid);
+      continue;
+    }
+    return { ...room, currentTurn: idx, frozenPlayerIds: frozen };
+  }
+  return { ...room, currentTurn: idx, frozenPlayerIds: frozen };
 }
 
 function drawOne(room: ServerRoom, playerId: string): ServerRoom {
@@ -138,6 +161,7 @@ export function startGame(room: RoomState, firstPlayerId?: string): ServerRoom {
     roundWinnerGif: null,
     roundTie: false,
     superCount: 0,
+    frozenPlayerIds: [],
     teams: room.teams.map((t) => ({ ...t, sequencesThisGame: 0 })),
     _deck: deck,
   };
@@ -260,6 +284,36 @@ export function discardCard(room: ServerRoom, playerId: string, cardId: string):
   let next: ServerRoom = {
     ...room,
     hands: { ...room.hands, [playerId]: hand.filter((c) => c.id !== cardId) },
+  };
+  next = drawOne(next, playerId);
+  next = advanceTurn(next) as ServerRoom;
+  return next;
+}
+
+// Play a Freeze card: skip one opponent's next turn. Targets a player, not a cell.
+export function freezeCard(
+  room: ServerRoom,
+  playerId: string,
+  cardId: string,
+  targetId: string
+): ServerRoom {
+  if (room.roundWinner || room.roundTie) return room; // board frozen after a win/tie
+  if (room.turnOrder[room.currentTurn] !== playerId) return room;
+  const hand = room.hands[playerId] ?? [];
+  const card = hand.find((c) => c.id === cardId);
+  if (!card || card.kind !== 'freeze') return room;
+  const me = room.players.find((p) => p.id === playerId);
+  const target = room.players.find((p) => p.id === targetId);
+  if (!me || !target || targetId === playerId) return room; // not yourself
+  if (me.team && target.team && me.team === target.team) return room; // not a teammate
+  if (!room.turnOrder.includes(targetId)) return room; // must be an active player
+  const frozen = room.frozenPlayerIds ?? [];
+  if (frozen.includes(targetId)) return room; // no stacking a second freeze
+
+  let next: ServerRoom = {
+    ...room,
+    hands: { ...room.hands, [playerId]: hand.filter((c) => c.id !== cardId) },
+    frozenPlayerIds: [...frozen, targetId],
   };
   next = drawOne(next, playerId);
   next = advanceTurn(next) as ServerRoom;

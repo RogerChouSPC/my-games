@@ -47,9 +47,10 @@ export default function SettingsModal({ view, onSave, onClose }: Props) {
   const [cardsPerPlayer, setCardsPerPlayer] = useState(s.cardsPerPlayer);
   const [plusCards, setPlusCards] = useState(s.plusCards);
   const [minusCards, setMinusCards] = useState(s.minusCards);
+  const [freezeCards, setFreezeCards] = useState(s.freezeCards);
 
   const save = () => {
-    onSave({ boardSize, sequencesToWin, cardsPerPlayer, plusCards, minusCards });
+    onSave({ boardSize, sequencesToWin, cardsPerPlayer, plusCards, minusCards, freezeCards });
     onClose();
   };
 
@@ -109,6 +110,7 @@ export default function SettingsModal({ view, onSave, onClose }: Props) {
         </div>
         <Stepper label="➕ Plus (wild)" desc="Place a chip on any empty number" value={plusCards} set={setPlusCards} />
         <Stepper label="➖ Minus (remove)" desc="Remove an opponent chip" value={minusCards} set={setMinusCards} />
+        <Stepper label="🧊 Freeze" desc="Skip an opponent's next turn" value={freezeCards} set={setFreezeCards} />
 
         <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
           <button className="ghost-btn" onClick={onClose}>

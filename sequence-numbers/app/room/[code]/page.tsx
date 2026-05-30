@@ -189,11 +189,25 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
   // must discard a card to draw a new one.
   const emptyPlayable = view.board.some((c) => c.owner === null && c.value !== 'FREE');
   const removableOpp = view.board.some(
-    (c) => c.owner !== null && c.owner !== actingTeam && !c.inSequence
+    (c) => c.owner !== null && c.owner !== actingTeam && !c.inSequence && !c.shielded
   );
+  // Opponents the acting player could freeze (used for highlighting + the stuck check).
+  const eligibleFreezeTargets = new Set<string>();
+  if (myTurn && !frozen) {
+    for (const pid of view.turnOrder) {
+      if (pid === activePlayerId) continue; // not yourself
+      const t = view.players.find((p) => p.id === pid);
+      if (!t) continue;
+      if (actingTeam && t.team && actingTeam === t.team) continue; // not teammates
+      if (view.frozenPlayerIds.includes(pid)) continue; // not already frozen
+      eligibleFreezeTargets.add(pid);
+    }
+  }
+  const hasFreezeTarget = eligibleFreezeTargets.size > 0;
   const cardHasMove = (card: (typeof view.myHand)[number]) => {
     if (card.kind === 'plus') return emptyPlayable;
     if (card.kind === 'minus') return removableOpp;
+    if (card.kind === 'freeze') return hasFreezeTarget;
     return view.board.some((c) => c.owner === null && c.value === card.target);
   };
   const canMove = view.myHand.some(cardHasMove);
@@ -304,7 +318,17 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
         selfTest={selfTest}
         onEndGame={isHost ? requestEnd : undefined}
       />
-      <PlayerStrip players={view.players} activePlayerId={activePlayerId} />
+      <PlayerStrip
+        players={view.players}
+        activePlayerId={activePlayerId}
+        frozenIds={view.frozenPlayerIds}
+        freezeTargets={selectedCard?.kind === 'freeze' ? eligibleFreezeTargets : undefined}
+        onFreezeTarget={(targetId) => {
+          if (!selectedCard) return;
+          emit('play-freeze', { code, cardId: selectedCard.id, targetId });
+          setSelectedCardId(null);
+        }}
+      />
       <Board
         cells={view.board}
         size={view.settings.boardSize}

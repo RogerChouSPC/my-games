@@ -9,6 +9,7 @@ import {
   playMinusCard,
   swapDeadCard,
   discardCard,
+  freezeCard,
   nextGame,
   nextRound,
   declareLastGame,
@@ -98,6 +99,7 @@ export function registerHandlers(io: Server): void {
         roundWinnerGif: null,
         roundTie: false,
         superCount: 0,
+        frozenPlayerIds: [],
         _deck: [],
       };
       rooms.set(code, room);
@@ -277,6 +279,25 @@ export function registerHandlers(io: Server): void {
       applyAndBroadcast(code, discardCard(room, actor, cardId));
     });
 
+    socket.on(
+      'play-freeze',
+      ({ code, cardId, targetId }: { code: string; cardId: string; targetId: string }) => {
+        const room = rooms.get(code);
+        if (!room) return;
+        const actor = resolveActor(room);
+        if (!actor) return;
+        const before = room.frozenPlayerIds ?? [];
+        const byName = room.players.find((p) => p.id === actor)?.name ?? 'Someone';
+        const next = freezeCard(room, actor, cardId, targetId);
+        const added = (next.frozenPlayerIds ?? []).find((id) => !before.includes(id));
+        applyAndBroadcast(code, next);
+        if (added) {
+          const targetName = room.players.find((p) => p.id === added)?.name ?? 'A player';
+          io.to(code).emit('card-effect', { kind: 'freeze', byName, targetName });
+        }
+      }
+    );
+
     // Host leaves the frozen winning board: go to the score screen (or final champion screen).
     socket.on('next-round', ({ code }: { code: string }) => {
       const room = rooms.get(code);
@@ -316,6 +337,7 @@ export function registerHandlers(io: Server): void {
       room.roundWinnerGif = null;
       room.roundTie = false;
       room.superCount = 0;
+      room.frozenPlayerIds = [];
       room.teams = room.teams.map((t) => ({ ...t, sequencesThisGame: 0, gameWins: 0 }));
       room.board = [];
       room.hands = {};

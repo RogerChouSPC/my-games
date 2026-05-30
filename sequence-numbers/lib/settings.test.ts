@@ -10,6 +10,11 @@ const base: Settings = {
   cardsPerPlayer: 3,
   plusCards: 2,
   minusCards: 2,
+  freezeCards: 0,
+  stealCards: 0,
+  shieldCards: 0,
+  bombCards: 0,
+  rerollCards: 0,
 };
 
 describe('applySettingsUpdate', () => {

@@ -15,6 +15,11 @@ export interface Settings {
   cardsPerPlayer: number; // 2..5
   plusCards: number; // 0..4 (per deck)
   minusCards: number; // 0..4 (per deck)
+  freezeCards: number; // 0..4 (per deck)
+  stealCards: number; // 0..4 (per deck)
+  shieldCards: number; // 0..4 (per deck)
+  bombCards: number; // 0..4 (per deck)
+  rerollCards: number; // 0..4 (per deck)
 }
 
 export interface Player {
@@ -26,7 +31,10 @@ export interface Player {
   isSeat?: boolean; // synthetic seat in self-test mode (controlled by the host)
 }
 
-export type CardKind = 'number' | 'plus' | 'minus';
+export type CardKind = 'number' | 'plus' | 'minus' | 'freeze' | 'steal' | 'shield' | 'bomb' | 'reroll';
+
+// Special cards (everything except number cards) carry no target/equation/color.
+export const SPECIAL_KINDS = ['plus', 'minus', 'freeze', 'steal', 'shield', 'bomb', 'reroll'] as const;
 
 export interface Card {
   id: string;
@@ -45,6 +53,7 @@ export interface Cell {
   owner: CellOwner; // which team's chip sits here
   bumpy: boolean; // showing bumpy (near-sequence) side
   inSequence: boolean; // locked into a completed sequence
+  shielded?: boolean; // protected from Minus/Steal for the rest of the game
 }
 
 export interface TeamState {
@@ -72,6 +81,7 @@ export interface RoomState {
   roundWinnerGif: string | null; // random celebration gif shown centre-board on a win
   roundTie: boolean; // game ended with no winner (board/deck exhausted); no points awarded
   superCount: number; // total full-length-line ("super") sequences on the board
+  frozenPlayerIds: string[]; // players whose next turn is skipped (Freeze card); ice shatters on skip
 }
 
 // Server-only state extends RoomState with the live deck (never sent to clients).

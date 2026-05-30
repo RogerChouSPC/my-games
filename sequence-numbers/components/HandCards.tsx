@@ -20,6 +20,15 @@ function isDead(card: Card, board: Cell[]): boolean {
   return cells.length > 0 && cells.every((c) => c.owner !== null);
 }
 
+// Visuals for the icon-based special cards (everything except number/plus/minus).
+const NEW_SPECIAL: Partial<Record<Card['kind'], { icon: string; label: string; accent: string }>> = {
+  freeze: { icon: '🧊', label: 'FREEZE', accent: '#80d8ff' },
+  steal: { icon: '🦹', label: 'STEAL', accent: '#ce93d8' },
+  shield: { icon: '🛡️', label: 'SHIELD', accent: '#fff176' },
+  bomb: { icon: '💣', label: 'BOMB', accent: '#ff7043' },
+  reroll: { icon: '🔀', label: 'REROLL', accent: '#80cbc4' },
+};
+
 export default function HandCards({
   hand,
   board,
@@ -34,11 +43,14 @@ export default function HandCards({
   // The little team chip shown on the right edge of every card.
   const teamPiece = teamColor ? <span className={`card-team-piece ${teamColor}`} /> : null;
 
+  const selected = hand.find((c) => c.id === selectedCardId) ?? null;
   const label = discardMode
     ? '🚫 No moves available — tap a card to discard it and draw a new one'
-    : myTurn
-      ? '🃏 Tap a card, then tap the matching circle on the board'
-      : '🃏 Tap a card to preview your options — wait for your turn to place';
+    : selected?.kind === 'freeze'
+      ? '🧊 Tap an opponent in the bar above to freeze them'
+      : myTurn
+        ? '🃏 Tap a card, then tap the matching circle on the board'
+        : '🃏 Tap a card to preview your options — wait for your turn to place';
 
   const handleTap = (card: Card, dead: boolean) => {
     if (discardMode) {
@@ -82,6 +94,26 @@ export default function HandCards({
                 <div className="card-body" style={{ padding: '18px 6px' }}>
                   <div className="card-eq" style={{ color: accent, fontSize: 26 }}>
                     {sym}
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
+          const sp = NEW_SPECIAL[card.kind];
+          if (sp) {
+            return (
+              <div
+                key={card.id}
+                className={`hand-card${active ? ' active' : ''}`}
+                style={{ background: '#111' }}
+                onClick={() => handleTap(card, false)}
+              >
+                {teamPiece}
+                <div className="card-body" style={{ flexDirection: 'column', gap: 4, padding: '14px 6px' }}>
+                  <div style={{ fontSize: 26 }}>{sp.icon}</div>
+                  <div style={{ fontSize: 9, fontWeight: 800, color: sp.accent, letterSpacing: 1 }}>
+                    {sp.label}
                   </div>
                 </div>
               </div>

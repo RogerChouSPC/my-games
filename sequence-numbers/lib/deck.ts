@@ -1,12 +1,29 @@
 import type { Card, Cell, Settings } from '@/types/game';
+import { SPECIAL_KINDS } from '@/types/game';
 import { makeEquation } from './equations';
 
 let _id = 0;
 const nextId = (): string => `card_${_id++}`;
 
+type SpecialCounts = Pick<
+  Settings,
+  'plusCards' | 'minusCards' | 'freezeCards' | 'stealCards' | 'shieldCards' | 'bombCards' | 'rerollCards'
+>;
+
+// Which settings count drives how many of each special card go in the deck.
+const SPECIAL_COUNT_KEY = {
+  plus: 'plusCards',
+  minus: 'minusCards',
+  freeze: 'freezeCards',
+  steal: 'stealCards',
+  shield: 'shieldCards',
+  bomb: 'bombCards',
+  reroll: 'rerollCards',
+} as const;
+
 // One number card per number-cell on the board (so the board is exactly fillable),
-// each carrying a freshly-generated equation, plus the configured plus/minus cards.
-export function buildDeck(board: Cell[], settings: Pick<Settings, 'plusCards' | 'minusCards'>): Card[] {
+// each carrying a freshly-generated equation, plus the configured special cards.
+export function buildDeck(board: Cell[], settings: SpecialCounts): Card[] {
   const cards: Card[] = [];
   for (const cell of board) {
     if (cell.value === 'FREE') continue;
@@ -18,11 +35,11 @@ export function buildDeck(board: Cell[], settings: Pick<Settings, 'plusCards' | 
       color: cell.color,
     });
   }
-  for (let i = 0; i < settings.plusCards; i++) {
-    cards.push({ id: nextId(), kind: 'plus', target: null, equation: null, color: null });
-  }
-  for (let i = 0; i < settings.minusCards; i++) {
-    cards.push({ id: nextId(), kind: 'minus', target: null, equation: null, color: null });
+  for (const kind of SPECIAL_KINDS) {
+    const count = settings[SPECIAL_COUNT_KEY[kind]];
+    for (let i = 0; i < count; i++) {
+      cards.push({ id: nextId(), kind, target: null, equation: null, color: null });
+    }
   }
   return cards;
 }

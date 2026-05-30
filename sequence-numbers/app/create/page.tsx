@@ -49,6 +49,12 @@ export default function CreateRoom() {
       cardsPerPlayer,
       plusCards,
       minusCards,
+      // New special cards default to 0; the host tunes them in the lobby Settings panel.
+      freezeCards: 0,
+      stealCards: 0,
+      shieldCards: 0,
+      bombCards: 0,
+      rerollCards: 0,
     };
     emit('create-room', {
       player: { id: getPlayerId(), name: profile.name, icon: profile.icon },

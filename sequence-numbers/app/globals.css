@@ -235,6 +235,20 @@ button { font-family: inherit; cursor: pointer; }
 /* Hand cards */
 .hand-area { flex-shrink: 0; background: var(--panel); border-top: 1px solid var(--line); padding: 6px 10px 12px; }
 .hand-label { font-size: 9px; color: var(--muted); margin-bottom: 6px; text-align: center; }
+.hand-label.discard { color: #ffab91; font-weight: 700; font-size: 11px; }
+.hand-cards.discardable .hand-card { outline: 2px solid #ef5350; outline-offset: 1px; cursor: pointer; }
+
+/* Team-colour piece in the top-right corner of every hand card (kept clear of the equation) */
+.card-team-piece { position: absolute; right: 3px; top: 3px; width: 12px; height: 12px; border-radius: 50%; z-index: 3; filter: drop-shadow(0 0 1px #fff) drop-shadow(0 1px 1px rgba(0,0,0,.5)); }
+.card-team-piece.red { background: radial-gradient(circle at 40% 30%, #ff8a80, #e53935, #7f0000); }
+.card-team-piece.blue { background: radial-gradient(circle at 40% 30%, #80d8ff, #1e88e5, #0d2b6e); }
+.card-team-piece.green { background: radial-gradient(circle at 40% 30%, #ccff90, #388e3c, #003300); }
+.card-team-piece.yellow { background: radial-gradient(circle at 40% 30%, #fff59d, #fbc02d, #6f4e00); }
+
+/* "You're on X Team" colour line */
+.my-team-line { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 14px; font-size: 15px; font-weight: 800; text-transform: capitalize; }
+.my-team-line .pieces { display: flex; gap: 4px; }
+.my-team-line .mini-chip { width: 18px; height: 18px; }
 .hand-cards { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
 .hand-card { background: #fff; border-radius: 10px; text-align: center; box-shadow: 2px 4px 12px rgba(0,0,0,.5); transition: transform .15s; min-width: 54px; border: 2px solid transparent; overflow: hidden; display: flex; flex-direction: column; position: relative; }
 .hand-card:hover { transform: translateY(-8px); }
@@ -247,7 +261,7 @@ button { font-family: inherit; cursor: pointer; }
 .card-footer { padding: 2px 6px 4px; display: flex; justify-content: flex-end; }
 .card-corner-tl { position: absolute; top: 4px; left: 5px; font-size: 10px; font-weight: 900; color: #fff; line-height: 1; text-align: center; }
 .card-corner-br { position: absolute; bottom: 4px; right: 5px; font-size: 10px; font-weight: 900; color: #fff; transform: rotate(180deg); line-height: 1; text-align: center; }
-.swap-tag { position: absolute; top: 2px; right: 4px; font-size: 8px; background: #333; color: #fff; border-radius: 4px; padding: 1px 4px; }
+.swap-tag { position: absolute; top: 2px; left: 4px; font-size: 8px; background: #333; color: #fff; border-radius: 4px; padding: 1px 4px; }
 
 /* Between games + final */
 .score-board { width: 100%; }
@@ -272,6 +286,11 @@ button { font-family: inherit; cursor: pointer; }
 .win-card .gif-img { margin: 0 auto 14px; }
 .win-card .gif-fallback { margin-bottom: 12px; }
 .win-title { font-size: 20px; font-weight: 900; margin-bottom: 16px; text-transform: capitalize; }
+
+/* Slim banner shown after the celebration popup, so the highlighted board stays visible. */
+.win-banner { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 90; display: flex; align-items: center; gap: 14px; background: var(--panel); border: 2px solid #ffd700; border-radius: 14px; padding: 10px 16px; max-width: 94vw; box-shadow: 0 0 26px rgba(255,215,0,.4); animation: pop-in .3s ease-out; }
+.win-banner-text { font-size: 15px; font-weight: 900; text-transform: capitalize; white-space: nowrap; }
+.win-banner .primary-btn { width: auto; padding: 8px 18px; margin: 0; }
 
 .error-banner { background: #4a1a1a; border: 1px solid #ef5350; color: #ffcdd2; border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-bottom: 12px; text-align: center; }
 .waiting-note { text-align: center; font-size: 11px; color: #555; margin-top: 12px; }

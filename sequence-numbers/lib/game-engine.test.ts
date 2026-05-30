@@ -5,6 +5,8 @@ import {
   playPlusCard,
   playMinusCard,
   swapDeadCard,
+  discardCard,
+  hasAnyLegalMove,
   nextGame,
   nextRound,
   declareLastGame,
@@ -44,6 +46,7 @@ function baseRoom(): RoomState {
     winners: null,
     roundWinner: null,
     roundWinnerGif: null,
+    roundTie: false,
     superCount: 0,
   };
 }
@@ -117,6 +120,27 @@ describe('playMinusCard', () => {
     r = playMinusCard(r, 'p1', 'm', idx);
     expect(r.board[idx].owner).toBe('red');
   });
+  it('cannot remove a chip that is part of a completed sequence', () => {
+    let r = startGame(baseRoom(), 'p1');
+    r.board = r.board.map((c) => ({ ...c, owner: null, bumpy: false, inSequence: false }));
+    r.settings = { ...r.settings, sequencesToWin: 2 }; // one sequence shouldn't end the game
+    // red (p1) builds a 5-in-a-row completed sequence across cells 24..28
+    const place = (idx: number) => {
+      const cell = r.board[idx];
+      const card = { id: 'c' + idx, kind: 'number' as const, target: cell.value as number, equation: '1+1', color: '#000' };
+      r.hands['p1'] = [card, ...(r.hands['p1'] ?? [])];
+      r.currentTurn = r.turnOrder.indexOf('p1');
+      r = playNumberCard(r, 'p1', 'c' + idx, idx);
+    };
+    [24, 25, 26, 27, 28].forEach(place);
+    expect([24, 25, 26, 27, 28].every((i) => r.board[i].inSequence)).toBe(true);
+    // blue (p2) tries to minus a chip inside red's completed sequence — must be refused
+    const minus = { id: 'm', kind: 'minus' as const, target: null, equation: null, color: null };
+    r.hands['p2'] = [minus, ...(r.hands['p2'] ?? [])];
+    r.currentTurn = r.turnOrder.indexOf('p2');
+    r = playMinusCard(r, 'p2', 'm', 26);
+    expect(r.board[26].owner).toBe('red'); // locked — still red
+  });
 });
 
 describe('bumpy + win', () => {
@@ -189,5 +213,48 @@ describe('multi-game flow', () => {
     r.teams[0].gameWins = 1;
     expect(finalize(r).winners).toBe('blue');
     expect(finalize(r).phase).toBe('final');
+  });
+});
+
+describe('discard + tie', () => {
+  it('hasAnyLegalMove is false when all number cards are dead and no specials', () => {
+    let r = startGame(baseRoom(), 'p1');
+    // Fill every non-FREE cell so no placement is possible.
+    r.board = r.board.map((c) => (c.value === 'FREE' ? c : { ...c, owner: 'blue' }));
+    r.hands['p1'] = [
+      { id: 'n1', kind: 'number', target: 5, equation: '5 + 0', color: '#000' },
+      { id: 'n2', kind: 'number', target: 9, equation: '9 + 0', color: '#000' },
+    ];
+    expect(hasAnyLegalMove(r, 'p1')).toBe(false);
+  });
+
+  it('discardCard removes a card, draws a replacement, and passes the turn when stuck', () => {
+    let r = startGame(baseRoom(), 'p1');
+    r.board = r.board.map((c) => (c.value === 'FREE' ? c : { ...c, owner: 'blue' }));
+    r.hands['p1'] = [{ id: 'n1', kind: 'number', target: 5, equation: '5 + 0', color: '#000' }];
+    const deckBefore = r._deck.length;
+    r = discardCard(r, 'p1', 'n1');
+    expect(r.hands['p1'].find((c) => c.id === 'n1')).toBeUndefined();
+    // drew one replacement (deck shrinks) and turn advanced to p2
+    expect(r._deck.length).toBe(deckBefore - 1);
+    expect(r.turnOrder[r.currentTurn]).toBe('p2');
+  });
+
+  it('ends in a tie (no points) when the board is full with no winner', () => {
+    let r = startGame(baseRoom(), 'p1');
+    r.settings = { ...r.settings, sequencesToWin: 99 }; // unreachable, so no win
+    // Leave exactly one empty cell, give p1 the matching card, then play it to fill the board.
+    const target = 5;
+    const lastIdx = r.board.findIndex((c) => c.value === target);
+    r.board = r.board.map((c, i) =>
+      c.value === 'FREE' || i === lastIdx ? c : { ...c, owner: 'blue' }
+    );
+    r.board[lastIdx] = { ...r.board[lastIdx], owner: null };
+    r.hands['p1'] = [{ id: 'x', kind: 'number', target, equation: '5 + 0', color: '#000' }];
+    r.currentTurn = r.turnOrder.indexOf('p1');
+    r = playNumberCard(r, 'p1', 'x', lastIdx);
+    expect(r.roundTie).toBe(true);
+    expect(r.roundWinner).toBe(null);
+    expect(r.teams.every((t) => t.gameWins === 0)).toBe(true);
   });
 });

@@ -59,6 +59,20 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
     }
   }, [connected, profile, joined, code, emit]);
 
+  // On a win/tie, show the celebration popup for ~3s, then auto-hide it to reveal
+  // the highlighted board underneath. The host taps Next when ready (no auto-advance).
+  const [winPopup, setWinPopup] = useState(false);
+  const winState = view?.roundWinner ?? (view?.roundTie ? 'tie' : null);
+  useEffect(() => {
+    if (!winState) {
+      setWinPopup(false);
+      return;
+    }
+    setWinPopup(true);
+    const t = setTimeout(() => setWinPopup(false), 3000);
+    return () => clearTimeout(t);
+  }, [winState]);
+
   if (!profile) {
     return (
       <CharacterPicker
@@ -146,7 +160,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
   // The team a move counts for: the active seat in self-test, otherwise my own team.
   const actingTeam = selfTest ? (activePlayer?.team ?? null) : myTeam;
   const selectedCard = view.myHand.find((c) => c.id === selectedCardId) ?? null;
-  const frozen = view.roundWinner !== null; // a team has won; board is paused
+  const frozen = view.roundWinner !== null || view.roundTie; // game paused (win or tie)
 
   // Which cells could the selected card target? Shown even when it's NOT your turn,
   // so waiting players can preview their options (they just can't place yet).
@@ -167,6 +181,20 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
       });
     }
   }
+
+  // Can the acting player make any move at all? If not (and it's their turn), they
+  // must discard a card to draw a new one.
+  const emptyPlayable = view.board.some((c) => c.owner === null && c.value !== 'FREE');
+  const removableOpp = view.board.some(
+    (c) => c.owner !== null && c.owner !== actingTeam && !c.inSequence
+  );
+  const cardHasMove = (card: (typeof view.myHand)[number]) => {
+    if (card.kind === 'plus') return emptyPlayable;
+    if (card.kind === 'minus') return removableOpp;
+    return view.board.some((c) => c.owner === null && c.value === card.target);
+  };
+  const canMove = view.myHand.some(cardHasMove);
+  const discardMode = myTurn && !frozen && view.myHand.length > 0 && !canMove;
 
   const handlePick = (cellIndex: number) => {
     if (!selectedCard || !myTurn || frozen) return; // can preview, but only place on your turn
@@ -195,31 +223,72 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
       {badgeTeam && (
         <div className="team-badge">
           <span className={`mini-chip ${badgeTeam}`} />
-          <span className="lbl">{selfTest ? `Now: ${badgeTeam}` : `You: ${badgeTeam}`}</span>
+          <span className="lbl" style={{ color: TEAM_HEX[badgeTeam] }}>
+            {selfTest ? `Now: ${badgeTeam} Team` : `${badgeTeam} Team`}
+          </span>
         </div>
       )}
 
-      {frozen && (
+      {/* Celebration popup: shows for ~3s on a win/tie, then auto-hides. */}
+      {frozen && winPopup && (
         <div className="win-overlay">
           <div className="win-card">
-            {view.roundWinnerGif ? (
-              <img src={view.roundWinnerGif} alt="Winner!" className="gif-img" />
+            {view.roundTie ? (
+              <>
+                <div className="gif-fallback">🤝</div>
+                <div className="win-title" style={{ color: '#ffd700' }}>
+                  It&apos;s a tie — no points this game
+                </div>
+              </>
             ) : (
-              <div className="gif-fallback">🏆🎉🏆</div>
-            )}
-            <div className="win-title" style={{ color: TEAM_HEX[view.roundWinner ?? 'red'] }}>
-              {TEAM_EMOJI[view.roundWinner ?? 'red']}{' '}
-              {selfTest ? winnerTeam?.color : winnerPlayers.map((p) => p.name).join(' & ') || view.roundWinner}{' '}
-              wins this game!
-            </div>
-            {isHost ? (
-              <button className="primary-btn" onClick={() => emit('next-round', { code })}>
-                Next ▶
-              </button>
-            ) : (
-              <div className="waiting-note">Waiting for the host to continue…</div>
+              <>
+                {view.roundWinnerGif ? (
+                  <img src={view.roundWinnerGif} alt="Winner!" className="gif-img" />
+                ) : (
+                  <div className="gif-fallback">🏆🎉🏆</div>
+                )}
+                <div className="win-title" style={{ color: TEAM_HEX[view.roundWinner ?? 'red'] }}>
+                  {TEAM_EMOJI[view.roundWinner ?? 'red']}{' '}
+                  {selfTest
+                    ? winnerTeam?.color
+                    : winnerPlayers.map((p) => p.name).join(' & ') || view.roundWinner}{' '}
+                  wins this game!
+                </div>
+              </>
             )}
           </div>
+        </div>
+      )}
+
+      {/* After the popup, a slim banner keeps the board (with its glowing winning
+          line) in view while the host decides when to continue. */}
+      {frozen && !winPopup && (
+        <div className="win-banner">
+          <span
+            className="win-banner-text"
+            style={{ color: view.roundTie ? '#ffd700' : TEAM_HEX[view.roundWinner ?? 'red'] }}
+          >
+            {view.roundTie ? (
+              <>🤝 Tie — no points</>
+            ) : (
+              <>
+                {TEAM_EMOJI[view.roundWinner ?? 'red']}{' '}
+                {selfTest
+                  ? winnerTeam?.color
+                  : winnerPlayers.map((p) => p.name).join(' & ') || view.roundWinner}{' '}
+                wins!
+              </>
+            )}
+          </span>
+          {isHost ? (
+            <button className="primary-btn" onClick={() => emit('next-round', { code })}>
+              Next ▶
+            </button>
+          ) : (
+            <span className="waiting-note" style={{ margin: 0 }}>
+              Waiting for the host…
+            </span>
+          )}
         </div>
       )}
 
@@ -245,9 +314,15 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
         board={view.board}
         selectedCardId={selectedCardId}
         myTurn={myTurn}
+        teamColor={actingTeam}
+        discardMode={discardMode}
         onSelect={(id) => setSelectedCardId((cur) => (cur === id ? null : id))}
         onSwapDead={(id) => {
           emit('swap-dead', { code, cardId: id });
+          setSelectedCardId(null);
+        }}
+        onDiscard={(id) => {
+          emit('discard-card', { code, cardId: id });
           setSelectedCardId(null);
         }}
       />

@@ -12,6 +12,35 @@ function uniqueTeams(room: RoomState): TeamColor[] {
   return [...new Set(room.players.map((p) => p.team).filter(Boolean) as TeamColor[])];
 }
 
+// Does this player have any legal move with any card in hand?
+export function hasAnyLegalMove(room: RoomState, playerId: string): boolean {
+  const team = room.players.find((p) => p.id === playerId)?.team ?? null;
+  const hand = room.hands[playerId] ?? [];
+  const emptyPlayable = room.board.some((c) => c.owner === null && c.value !== 'FREE');
+  const removableOpp = room.board.some(
+    (c) => c.owner !== null && c.owner !== team && !c.inSequence
+  );
+  for (const card of hand) {
+    if (card.kind === 'plus' && emptyPlayable) return true;
+    if (card.kind === 'minus' && removableOpp) return true;
+    if (card.kind === 'number' && room.board.some((c) => c.owner === null && c.value === card.target))
+      return true;
+  }
+  return false;
+}
+
+// The game is a draw when nobody has won and no further progress is possible:
+// the board is full, or the deck is empty and no player can move.
+function isDraw(room: RoomState): boolean {
+  if (room.roundWinner || room.roundTie) return false;
+  if (room.teams.some((t) => t.sequencesThisGame >= room.settings.sequencesToWin)) return false;
+  const boardFull = !room.board.some((c) => c.owner === null && c.value !== 'FREE');
+  const deck = (room as ServerRoom)._deck;
+  const deckEmpty = !deck || deck.length === 0;
+  const anyoneCanMove = room.turnOrder.some((pid) => hasAnyLegalMove(room, pid));
+  return boardFull || (deckEmpty && !anyoneCanMove);
+}
+
 // Recompute inSequence + bumpy flags and per-team sequence counts from board ownership.
 function recomputeBoardFlags(room: RoomState): RoomState {
   const size = room.settings.boardSize;
@@ -64,11 +93,17 @@ function checkWin(room: RoomState): RoomState {
   return { ...room, teams, roundWinner: winnerTeam.color };
 }
 
-// Host advances from the frozen winning board: to the score screen, or the final
-// champion screen if this was the last game.
+// After a move, if nobody won and the game can't continue, freeze as a tie.
+function checkDraw(room: RoomState): RoomState {
+  if (room.roundWinner || room.roundTie) return room;
+  return isDraw(room) ? { ...room, roundTie: true } : room;
+}
+
+// Host advances from a frozen board (a win or a tie): to the score screen, or the
+// final champion screen if this was the last game.
 export function nextRound(room: RoomState): RoomState {
-  if (!room.roundWinner) return room;
-  const cleared = { ...room, roundWinner: null, roundWinnerGif: null };
+  if (!room.roundWinner && !room.roundTie) return room;
+  const cleared = { ...room, roundWinner: null, roundWinnerGif: null, roundTie: false };
   return room.isLastGame ? finalize(cleared) : { ...cleared, phase: 'between' };
 }
 
@@ -101,6 +136,7 @@ export function startGame(room: RoomState, firstPlayerId?: string): ServerRoom {
     lastMove: null,
     roundWinner: null,
     roundWinnerGif: null,
+    roundTie: false,
     superCount: 0,
     teams: room.teams.map((t) => ({ ...t, sequencesThisGame: 0 })),
     _deck: deck,
@@ -113,7 +149,7 @@ export function playNumberCard(
   cardId: string,
   cellIndex: number
 ): ServerRoom {
-  if (room.roundWinner) return room; // board frozen after a win
+  if (room.roundWinner || room.roundTie) return room; // board frozen after a win/tie
   if (room.turnOrder[room.currentTurn] !== playerId) return room;
   const cell = room.board[cellIndex];
   if (!cell || cell.owner !== null || cell.value === 'FREE') return room;
@@ -130,7 +166,9 @@ export function playNumberCard(
   next = recomputeBoardFlags(next) as ServerRoom;
   next = drawOne(next, playerId);
   next = checkWin(next) as ServerRoom;
-  if (next.phase === 'playing' && !next.roundWinner) next = advanceTurn(next) as ServerRoom;
+  next = checkDraw(next) as ServerRoom;
+  if (next.phase === 'playing' && !next.roundWinner && !next.roundTie)
+    next = advanceTurn(next) as ServerRoom;
   return next;
 }
 
@@ -140,7 +178,7 @@ export function playPlusCard(
   cardId: string,
   cellIndex: number
 ): ServerRoom {
-  if (room.roundWinner) return room; // board frozen after a win
+  if (room.roundWinner || room.roundTie) return room; // board frozen after a win/tie
   if (room.turnOrder[room.currentTurn] !== playerId) return room;
   const cell = room.board[cellIndex];
   if (!cell || cell.owner !== null || cell.value === 'FREE') return room;
@@ -157,7 +195,9 @@ export function playPlusCard(
   next = recomputeBoardFlags(next) as ServerRoom;
   next = drawOne(next, playerId);
   next = checkWin(next) as ServerRoom;
-  if (next.phase === 'playing' && !next.roundWinner) next = advanceTurn(next) as ServerRoom;
+  next = checkDraw(next) as ServerRoom;
+  if (next.phase === 'playing' && !next.roundWinner && !next.roundTie)
+    next = advanceTurn(next) as ServerRoom;
   return next;
 }
 
@@ -167,7 +207,7 @@ export function playMinusCard(
   cardId: string,
   cellIndex: number
 ): ServerRoom {
-  if (room.roundWinner) return room; // board frozen after a win
+  if (room.roundWinner || room.roundTie) return room; // board frozen after a win/tie
   if (room.turnOrder[room.currentTurn] !== playerId) return room;
   const cell = room.board[cellIndex];
   const myTeam = teamOf(room, playerId);
@@ -184,13 +224,15 @@ export function playMinusCard(
   };
   next = recomputeBoardFlags(next) as ServerRoom;
   next = drawOne(next, playerId);
-  if (next.phase === 'playing' && !next.roundWinner) next = advanceTurn(next) as ServerRoom;
+  next = checkDraw(next) as ServerRoom;
+  if (next.phase === 'playing' && !next.roundWinner && !next.roundTie)
+    next = advanceTurn(next) as ServerRoom;
   return next;
 }
 
 // A number card is "dead" when every board cell with its target is already owned.
 export function swapDeadCard(room: ServerRoom, playerId: string, cardId: string): ServerRoom {
-  if (room.roundWinner) return room; // board frozen after a win
+  if (room.roundWinner || room.roundTie) return room; // board frozen after a win/tie
   if (room.turnOrder[room.currentTurn] !== playerId) return room;
   const hand = room.hands[playerId] ?? [];
   const card = hand.find((c) => c.id === cardId);
@@ -203,6 +245,25 @@ export function swapDeadCard(room: ServerRoom, playerId: string, cardId: string)
   };
   next = drawOne(next, playerId);
   return next; // does NOT advance turn — player still makes a move this turn
+}
+
+// When a player has no legal move at all, they discard one card, draw a
+// replacement, and their turn passes. The client only offers this when stuck;
+// the server re-checks hasAnyLegalMove to stay authoritative.
+export function discardCard(room: ServerRoom, playerId: string, cardId: string): ServerRoom {
+  if (room.roundWinner || room.roundTie) return room; // board frozen after a win/tie
+  if (room.turnOrder[room.currentTurn] !== playerId) return room;
+  if (hasAnyLegalMove(room, playerId)) return room; // only allowed when truly stuck
+  const hand = room.hands[playerId] ?? [];
+  const card = hand.find((c) => c.id === cardId);
+  if (!card) return room;
+  let next: ServerRoom = {
+    ...room,
+    hands: { ...room.hands, [playerId]: hand.filter((c) => c.id !== cardId) },
+  };
+  next = drawOne(next, playerId);
+  next = advanceTurn(next) as ServerRoom;
+  return next;
 }
 
 export function nextGame(room: RoomState, winningTeam: TeamColor | null): ServerRoom {

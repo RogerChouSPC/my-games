@@ -70,6 +70,7 @@ export interface RoomState {
   winners: TeamColor | null; // overall champion, set in 'final'
   roundWinner: TeamColor | null; // team that just won this game; board freezes until host continues
   roundWinnerGif: string | null; // random celebration gif shown centre-board on a win
+  roundTie: boolean; // game ended with no winner (board/deck exhausted); no points awarded
   superCount: number; // total full-length-line ("super") sequences on the board
 }
 

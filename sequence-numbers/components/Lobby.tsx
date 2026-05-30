@@ -49,6 +49,13 @@ export default function Lobby({ view, onAssign, onStart }: LobbyProps) {
   };
 
   const icon = (n: number) => `/icons/char_${String(n).padStart(2, '0')}.png`;
+  const myTeam = realPlayers.find((p) => p.id === view.myPlayerId)?.team ?? null;
+  const TEAM_HEX: Record<TeamColor, string> = {
+    red: '#ef5350',
+    blue: '#42a5f5',
+    green: '#66bb6a',
+    yellow: '#ffca28',
+  };
 
   const modeLabel =
     mode === 'teams'
@@ -60,6 +67,16 @@ export default function Lobby({ view, onAssign, onStart }: LobbyProps) {
   return (
     <div className="page">
       <div className="card-title">🎯 Waiting Room</div>
+
+      {myTeam && (
+        <div className="my-team-line" style={{ color: TEAM_HEX[myTeam] }}>
+          <span className="pieces">
+            <span className={`mini-chip ${myTeam}`} />
+            <span className={`mini-chip ${myTeam}`} />
+          </span>
+          You&apos;re on {myTeam} Team
+        </div>
+      )}
 
       <div className="room-code-bar">
         <div>

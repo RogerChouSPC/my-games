@@ -8,6 +8,7 @@ import {
   playPlusCard,
   playMinusCard,
   swapDeadCard,
+  discardCard,
   nextGame,
   nextRound,
   declareLastGame,
@@ -94,6 +95,7 @@ export function registerHandlers(io: Server): void {
         winners: null,
         roundWinner: null,
         roundWinnerGif: null,
+        roundTie: false,
         superCount: 0,
         _deck: [],
       };
@@ -259,6 +261,14 @@ export function registerHandlers(io: Server): void {
       applyAndBroadcast(code, swapDeadCard(room, actor, cardId));
     });
 
+    socket.on('discard-card', ({ code, cardId }: { code: string; cardId: string }) => {
+      const room = rooms.get(code);
+      if (!room) return;
+      const actor = resolveActor(room);
+      if (!actor) return;
+      applyAndBroadcast(code, discardCard(room, actor, cardId));
+    });
+
     // Host leaves the frozen winning board: go to the score screen (or final champion screen).
     socket.on('next-round', ({ code }: { code: string }) => {
       const room = rooms.get(code);
@@ -296,6 +306,7 @@ export function registerHandlers(io: Server): void {
       room.winners = null;
       room.roundWinner = null;
       room.roundWinnerGif = null;
+      room.roundTie = false;
       room.superCount = 0;
       room.teams = room.teams.map((t) => ({ ...t, sequencesThisGame: 0, gameWins: 0 }));
       room.board = [];

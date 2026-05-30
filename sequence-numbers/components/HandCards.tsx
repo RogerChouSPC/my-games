@@ -1,13 +1,16 @@
 'use client';
-import type { Card, Cell } from '@/types/game';
+import type { Card, Cell, TeamColor } from '@/types/game';
 
 interface HandCardsProps {
   hand: Card[];
   board: Cell[];
   selectedCardId: string | null;
   myTurn: boolean;
+  teamColor: TeamColor | null;
+  discardMode: boolean;
   onSelect: (cardId: string) => void;
   onSwapDead: (cardId: string) => void;
+  onDiscard: (cardId: string) => void;
 }
 
 // A number card is dead if every board cell with its target is already owned.
@@ -22,17 +25,34 @@ export default function HandCards({
   board,
   selectedCardId,
   myTurn,
+  teamColor,
+  discardMode,
   onSelect,
   onSwapDead,
+  onDiscard,
 }: HandCardsProps) {
+  // The little team chip shown on the right edge of every card.
+  const teamPiece = teamColor ? <span className={`card-team-piece ${teamColor}`} /> : null;
+
+  const label = discardMode
+    ? '🚫 No moves available — tap a card to discard it and draw a new one'
+    : myTurn
+      ? '🃏 Tap a card, then tap the matching circle on the board'
+      : '🃏 Tap a card to preview your options — wait for your turn to place';
+
+  const handleTap = (card: Card, dead: boolean) => {
+    if (discardMode) {
+      onDiscard(card.id);
+      return;
+    }
+    if (card.kind === 'number' && dead) return;
+    onSelect(card.id);
+  };
+
   return (
     <div className="hand-area">
-      <div className="hand-label">
-        {myTurn
-          ? '🃏 Tap a card, then tap the matching circle on the board'
-          : '🃏 Tap a card to preview your options — wait for your turn to place'}
-      </div>
-      <div className="hand-cards">
+      <div className={`hand-label${discardMode ? ' discard' : ''}`}>{label}</div>
+      <div className={`hand-cards${discardMode ? ' discardable' : ''}`}>
         {hand.map((card) => {
           const active = card.id === selectedCardId;
           const dead = isDead(card, board);
@@ -46,8 +66,9 @@ export default function HandCards({
                 key={card.id}
                 className={`hand-card${active ? ' active' : ''}`}
                 style={{ background: '#111' }}
-                onClick={() => onSelect(card.id)}
+                onClick={() => handleTap(card, dead)}
               >
+                {teamPiece}
                 <div className="card-corner-tl">
                   {sym}
                   <br />
@@ -70,10 +91,11 @@ export default function HandCards({
           return (
             <div
               key={card.id}
-              className={`hand-card${active ? ' active' : ''}${dead ? ' dead' : ''}`}
-              onClick={() => !dead && onSelect(card.id)}
+              className={`hand-card${active ? ' active' : ''}${dead && !discardMode ? ' dead' : ''}`}
+              onClick={() => handleTap(card, dead)}
             >
-              {dead && (
+              {teamPiece}
+              {dead && !discardMode && (
                 <span
                   className="swap-tag"
                   onClick={(e) => {

@@ -237,15 +237,30 @@ describe('shieldCard', () => {
 
 describe('rerollCard', () => {
   const reroll = () => ({ id: 'rr', kind: 'reroll' as const, target: null, equation: null, color: null });
-  it('replaces the whole hand with a fresh full hand and passes the turn', () => {
+  const num = (id: string, target: number) => ({ id, kind: 'number' as const, target, equation: `${target}+0`, color: '#000' });
+
+  it('swaps the reroll card and one chosen card for two fresh ones; keeps the rest; passes the turn', () => {
     let r = startGame(baseRoom(), 'p1');
     r.turnOrder = ['p1', 'p2'];
     r.currentTurn = 0;
-    r.hands['p1'] = [reroll(), { id: 'n1', kind: 'number', target: 5, equation: '5+0', color: '#000' }];
-    r = rerollCard(r, 'p1', 'rr');
+    r.hands['p1'] = [reroll(), num('n1', 5), num('n2', 9)];
+    const size = r.hands['p1'].length; // 3
+    r = rerollCard(r, 'p1', 'rr', 'n1');
     expect(r.hands['p1'].find((c) => c.id === 'rr')).toBeUndefined(); // reroll consumed
-    expect(r.hands['p1'].length).toBe(r.settings.cardsPerPlayer);
+    expect(r.hands['p1'].find((c) => c.id === 'n2')).toBeDefined(); // untouched card stays
+    expect(r.hands['p1'].length).toBe(size); // removed 2, drew 2 → same size
     expect(r.turnOrder[r.currentTurn]).toBe('p2');
+  });
+
+  it('returns the chosen card to the deck (so the board stays fillable)', () => {
+    let r = startGame(baseRoom(), 'p1');
+    r.turnOrder = ['p1', 'p2'];
+    r.currentTurn = 0;
+    const deckBefore = r._deck.length;
+    r.hands['p1'] = [reroll(), num('n1', 5), num('n2', 9)];
+    r = rerollCard(r, 'p1', 'rr', 'n1');
+    // deck gained the chosen card (n1) then 2 were drawn → net deck change is -1 (reroll spent)
+    expect(r._deck.length).toBe(deckBefore - 1);
   });
 });
 

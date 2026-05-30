@@ -220,7 +220,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
     if (card.kind === 'minus' || card.kind === 'steal') return removableOpp;
     if (card.kind === 'shield') return ownUnshielded;
     if (card.kind === 'bomb') return anyChip;
-    if (card.kind === 'reroll') return view.deckCount > 0;
+    if (card.kind === 'reroll') return view.myHand.length > 1;
     if (card.kind === 'freeze') return hasFreezeTarget;
     return view.board.some((c) => c.owner === null && c.value === card.target);
   };
@@ -371,8 +371,8 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
           emit('discard-card', { code, cardId: id });
           setSelectedCardId(null);
         }}
-        onReroll={(id) => {
-          emit('play-reroll', { code, cardId: id });
+        onReroll={(id, swapId) => {
+          emit('play-reroll', { code, cardId: id, swapCardId: swapId });
           setSelectedCardId(null);
         }}
       />

@@ -336,8 +336,10 @@ export function registerHandlers(io: Server): void {
     socket.on('play-bomb', ({ code, cardId, cellIndex }: { code: string; cardId: string; cellIndex: number }) =>
       playSpecial(code, cardId, 'bomb', (room, actor) => bombCard(room, actor, cardId, cellIndex))
     );
-    socket.on('play-reroll', ({ code, cardId }: { code: string; cardId: string }) =>
-      playSpecial(code, cardId, 'reroll', (room, actor) => rerollCard(room, actor, cardId))
+    socket.on(
+      'play-reroll',
+      ({ code, cardId, swapCardId }: { code: string; cardId: string; swapCardId: string }) =>
+        playSpecial(code, cardId, 'reroll', (room, actor) => rerollCard(room, actor, cardId, swapCardId))
     );
 
     // Host leaves the frozen winning board: go to the score screen (or final champion screen).

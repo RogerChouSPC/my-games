@@ -29,14 +29,13 @@ export function hasAnyLegalMove(room: RoomState, playerId: string): boolean {
   });
   const hasOwnUnshielded = room.board.some((c) => c.owner === team && !c.shielded);
   const hasAnyChip = room.board.some((c) => c.owner !== null);
-  const deckHasCards = (room.deckCount ?? 0) > 0;
   for (const card of hand) {
     if (card.kind === 'plus' && emptyPlayable) return true;
     if (card.kind === 'minus' && removableOpp) return true;
     if (card.kind === 'steal' && removableOpp) return true;
     if (card.kind === 'shield' && hasOwnUnshielded) return true;
     if (card.kind === 'bomb' && hasAnyChip) return true;
-    if (card.kind === 'reroll' && deckHasCards) return true;
+    if (card.kind === 'reroll' && hand.length > 1) return true;
     if (card.kind === 'freeze' && hasFreezeTarget) return true;
     if (card.kind === 'number' && room.board.some((c) => c.owner === null && c.value === card.target))
       return true;
@@ -393,20 +392,27 @@ export function shieldCard(
   return next;
 }
 
-// Reroll: discard your whole hand back into the deck and draw a fresh full hand.
-export function rerollCard(room: ServerRoom, playerId: string, cardId: string): ServerRoom {
+// Reroll: swap the reroll card and one chosen card for two fresh ones. The chosen
+// card returns to the deck (shuffled, for future players); the reroll card is spent.
+export function rerollCard(
+  room: ServerRoom,
+  playerId: string,
+  cardId: string,
+  swapCardId: string
+): ServerRoom {
   if (room.roundWinner || room.roundTie) return room;
   if (room.turnOrder[room.currentTurn] !== playerId) return room;
   const hand = room.hands[playerId] ?? [];
-  const card = hand.find((c) => c.id === cardId);
-  if (!card || card.kind !== 'reroll') return room;
-  // Old cards (minus the reroll itself) return to the deck so the board stays fillable.
-  const deck = shuffle([...(room._deck ?? []), ...hand.filter((c) => c.id !== cardId)]);
-  const newHand = deck.slice(0, room.settings.cardsPerPlayer);
-  const rest = deck.slice(room.settings.cardsPerPlayer);
+  const reroll = hand.find((c) => c.id === cardId);
+  const swap = hand.find((c) => c.id === swapCardId);
+  if (!reroll || reroll.kind !== 'reroll' || !swap || swapCardId === cardId) return room;
+  const kept = hand.filter((c) => c.id !== cardId && c.id !== swapCardId);
+  const deck = shuffle([...(room._deck ?? []), swap]); // chosen card returns to the deck
+  const drawn = deck.slice(0, 2);
+  const rest = deck.slice(2);
   let next: ServerRoom = {
     ...room,
-    hands: { ...room.hands, [playerId]: newHand },
+    hands: { ...room.hands, [playerId]: [...kept, ...drawn] },
     _deck: rest,
     deckCount: rest.length,
   };

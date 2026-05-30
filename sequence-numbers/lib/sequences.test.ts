@@ -98,3 +98,34 @@ describe('countSequences', () => {
     expect(countSequences(owners, new Set(), 9, 6, 'blue')).toBe(2);
   });
 });
+
+// Reproductions of Roger's reported board states (bottom-corner red row; vertical blue column).
+describe('reported board scenarios', () => {
+  it('8x8: 4 reds next to the bottom-right FREE corner already make a sequence', () => {
+    const owners = grid(8);
+    [59, 60, 61, 62].forEach((i) => (owners[i] = 'red')); // row 7, cols 3-6
+    const free = new Set([56, 63]);
+    // window [59,60,61,62,63(FREE)] = 4 red + free = 5 -> a completed sequence
+    expect(findCompletedSequences(owners, free, 8, 5, 'red').length).toBeGreaterThanOrEqual(1);
+  });
+  it('8x8: 3 reds + empty + bottom-right FREE corner shows bumpy', () => {
+    const owners = grid(8);
+    [60, 61, 62].forEach((i) => (owners[i] = 'red')); // 59 empty, 63 FREE
+    const bumpy = findBumpyCells(owners, new Set([56, 63]), 8, 5, 'red');
+    [60, 61, 62].forEach((i) => expect(bumpy.has(i)).toBe(true));
+  });
+  it('9x9: a vertical 6-in-a-row (column 3, rows 3..8) is a sequence, not bumpy', () => {
+    const owners = grid(9);
+    [30, 39, 48, 57, 66, 75].forEach((i) => (owners[i] = 'blue')); // col 3, rows 3..8
+    const seqs = findCompletedSequences(owners, new Set(), 9, 6, 'blue');
+    // all 6 cells belong to one detected run, so the real recompute marks them
+    // inSequence (gold) and suppresses bumpy on them.
+    expect(seqs.some((run) => [30, 39, 48, 57, 66, 75].every((i) => run.includes(i)))).toBe(true);
+  });
+  it('9x9: a vertical 5 + empty (column 3, rows 3..7) is only bumpy', () => {
+    const owners = grid(9);
+    [30, 39, 48, 57, 66].forEach((i) => (owners[i] = 'blue')); // 75 empty
+    expect(findCompletedSequences(owners, new Set(), 9, 6, 'blue')).toHaveLength(0);
+    expect([30, 39, 48, 57, 66].every((i) => findBumpyCells(owners, new Set(), 9, 6, 'blue').has(i))).toBe(true);
+  });
+});

@@ -22,7 +22,7 @@ export default function Home() {
   const icon = (n: number) => `/icons/char_${String(n).padStart(2, '0')}.png`;
 
   return (
-    <main className="center-screen">
+    <main className="home-screen">
       {showPicker && (
         <CharacterPicker
           initialName={profile?.name}
@@ -35,48 +35,56 @@ export default function Home() {
         />
       )}
 
-      <div className="logo">
-        <div className="logo-icon">⚔️</div>
-        <div className="logo-title">NUMBER WARS</div>
-        <div className="logo-sub">Math Strategy Game</div>
+      <div className="home-glow" aria-hidden />
+
+      <div className="home-hero">
+        <div className="nw-crest">⚔️</div>
+        <h1 className="nw-title">
+          NUMBER<span className="nw-title-war">WARS</span>
+        </h1>
+        <div className="nw-battleline" />
+        <div className="nw-tagline">MATH · STRATEGY · DOMINATION</div>
       </div>
 
-      <div className="card-panel">
-        <div className="field-label">Your Character</div>
-        <button className="char-edit-row" onClick={() => setShowPicker(true)}>
+      <div className="home-card">
+        <div className="home-section-label">Your Fighter</div>
+        <button className="fighter-card" onClick={() => setShowPicker(true)}>
           {profile ? (
             <>
-              <img src={icon(profile.icon)} alt="you" />
-              <span className="char-edit-name">{profile.name}</span>
-              <span className="char-edit-action">✏️ Change</span>
+              <span className="fighter-avatar">
+                <img src={icon(profile.icon)} alt="you" />
+              </span>
+              <span className="fighter-name">{profile.name}</span>
+              <span className="fighter-change">✏️ Change</span>
             </>
           ) : (
-            <span className="char-edit-action">＋ Choose your character &amp; name</span>
+            <>
+              <span className="fighter-avatar empty">＋</span>
+              <span className="fighter-name muted">Choose your fighter &amp; name</span>
+              <span className="fighter-change">Set up</span>
+            </>
           )}
         </button>
 
-        <div className="divider" />
-
-        <button className="primary-btn" onClick={() => router.push('/create')}>
-          🎮 Create Room
+        <button className="battle-btn" onClick={() => router.push('/create')}>
+          <span className="battle-btn-icon">🎮</span> Create Battle Room
         </button>
 
-        <div className="divider" />
-
-        <div className="field-label">Join with a code</div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <input
-            className="text-input"
-            placeholder="ABCD"
-            maxLength={4}
-            value={code}
-            style={{ textTransform: 'uppercase', letterSpacing: 4, fontWeight: 700 }}
-            onChange={(e) => setCode(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && join()}
-          />
-          <button className="ghost-btn" style={{ width: 'auto', padding: '0 20px' }} onClick={join}>
-            Join
-          </button>
+        <div className="home-join">
+          <div className="home-section-label">Join with a code</div>
+          <div className="home-join-row">
+            <input
+              className="code-input"
+              placeholder="ABCD"
+              maxLength={4}
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && join()}
+            />
+            <button className="join-btn" onClick={join}>
+              Join ⚔
+            </button>
+          </div>
         </div>
       </div>
     </main>

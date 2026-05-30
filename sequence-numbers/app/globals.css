@@ -124,6 +124,56 @@ button { font-family: inherit; cursor: pointer; }
 .char-edit-row img { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; }
 .char-edit-name { font-weight: 700; flex: 1; }
 .char-edit-action { color: var(--accent); font-size: 13px; font-weight: 700; }
+
+/* ===================== Number Wars — home (battle arena) ===================== */
+.logo-title { font-family: 'Russo One', system-ui, sans-serif; }
+
+.home-screen { position: relative; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px 18px; overflow: hidden; }
+.home-glow { position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(circle at 14% 8%, rgba(239,83,80,.22), transparent 42%),
+    radial-gradient(circle at 86% 92%, rgba(66,165,245,.22), transparent 42%),
+    radial-gradient(circle at 50% 45%, rgba(255,213,79,.06), transparent 60%); }
+.home-glow::after { content: ''; position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+  background-size: 34px 34px;
+  -webkit-mask-image: radial-gradient(circle at 50% 40%, #000 25%, transparent 72%);
+  mask-image: radial-gradient(circle at 50% 40%, #000 25%, transparent 72%); }
+
+.home-hero { position: relative; z-index: 1; width: 100%; max-width: 440px; text-align: center; margin-bottom: 26px; animation: nwRise .6s ease-out both; }
+.nw-crest { font-size: 46px; line-height: 1; filter: drop-shadow(0 0 14px rgba(255,213,79,.6)); animation: nwFloat 3.6s ease-in-out infinite; }
+.nw-title { font-family: 'Russo One', system-ui, sans-serif; font-weight: 400; font-size: clamp(48px, 17vw, 80px); line-height: .9; letter-spacing: 2px; margin: 8px 0 0; color: #fff; text-shadow: 0 3px 0 rgba(0,0,0,.45), 0 0 28px rgba(255,255,255,.16); }
+.nw-title-war { display: block; background: linear-gradient(180deg, #ffd54f 0%, #ff6f3c 60%, #e53935 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 18px rgba(255,111,60,.45)); }
+.nw-battleline { height: 3px; width: 190px; margin: 14px auto 12px; border-radius: 3px; background: linear-gradient(90deg, #ef5350, #ffd54f 50%, #42a5f5); box-shadow: 0 0 14px rgba(255,213,79,.4); }
+.nw-tagline { font-family: 'Rajdhani', system-ui, sans-serif; font-weight: 600; font-size: 12px; letter-spacing: 5px; color: rgba(255,255,255,.55); text-transform: uppercase; }
+
+.home-card { position: relative; z-index: 1; width: 100%; max-width: 440px; background: linear-gradient(180deg, rgba(28,31,50,.92), rgba(15,17,28,.94)); border: 1px solid rgba(255,255,255,.09); border-radius: 20px; padding: 20px; backdrop-filter: blur(10px); box-shadow: 0 22px 55px rgba(0,0,0,.55); animation: nwRise .6s ease-out .12s both; }
+.home-section-label { font-family: 'Rajdhani', system-ui, sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: rgba(255,255,255,.45); margin-bottom: 10px; }
+
+.fighter-card { display: flex; align-items: center; gap: 14px; width: 100%; background: rgba(0,0,0,.32); border: 1.5px solid rgba(255,255,255,.1); border-radius: 14px; padding: 12px 14px; cursor: pointer; text-align: left; transition: border-color .15s, transform .15s; }
+.fighter-card:hover { border-color: rgba(255,213,79,.6); transform: translateY(-2px); }
+.fighter-avatar { width: 52px; height: 52px; border-radius: 12px; overflow: hidden; flex-shrink: 0; border: 2px solid rgba(255,213,79,.7); box-shadow: 0 0 14px rgba(255,213,79,.25); display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,.04); }
+.fighter-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.fighter-avatar.empty { font-size: 26px; color: rgba(255,255,255,.5); border-style: dashed; }
+.fighter-name { flex: 1; font-family: 'Russo One', system-ui, sans-serif; font-size: 18px; color: #fff; }
+.fighter-name.muted { font-family: 'Rajdhani', system-ui, sans-serif; font-weight: 600; font-size: 14px; color: rgba(255,255,255,.6); }
+.fighter-change { font-family: 'Rajdhani', system-ui, sans-serif; font-weight: 700; font-size: 13px; color: #ffd54f; white-space: nowrap; }
+
+.battle-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; margin-top: 18px; padding: 16px; border: none; border-radius: 14px; cursor: pointer; font-family: 'Russo One', system-ui, sans-serif; font-size: 18px; letter-spacing: .5px; color: #2a1500; background: linear-gradient(135deg, #ffe082 0%, #ffb300 45%, #ff8f00 100%); box-shadow: 0 8px 22px rgba(255,143,0,.4), inset 0 1px 0 rgba(255,255,255,.5); transition: transform .15s, box-shadow .15s; }
+.battle-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(255,143,0,.55), inset 0 1px 0 rgba(255,255,255,.6); }
+.battle-btn:active { transform: translateY(0); }
+.battle-btn-icon { font-size: 20px; }
+
+.home-join { margin-top: 20px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.08); }
+.home-join-row { display: flex; gap: 8px; }
+.code-input { flex: 1; min-width: 0; background: rgba(0,0,0,.38); border: 1.5px solid rgba(255,255,255,.12); border-radius: 12px; padding: 12px 10px; color: #fff; font-family: 'Russo One', system-ui, sans-serif; letter-spacing: 8px; text-transform: uppercase; font-size: 18px; text-align: center; }
+.code-input::placeholder { color: rgba(255,255,255,.25); }
+.code-input:focus { outline: none; border-color: #42a5f5; box-shadow: 0 0 0 3px rgba(66,165,245,.25); }
+.join-btn { padding: 0 18px; border: none; border-radius: 12px; cursor: pointer; font-family: 'Russo One', system-ui, sans-serif; font-size: 14px; color: #fff; white-space: nowrap; background: linear-gradient(135deg, #42a5f5, #1565c0); box-shadow: 0 6px 16px rgba(21,101,192,.4); transition: filter .15s; }
+.join-btn:hover { filter: brightness(1.12); }
+
+@keyframes nwRise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes nwFloat { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-6px) rotate(3deg); } }
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.88); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
 .modal { background: var(--panel); border-radius: 20px; border: 1px solid var(--line); padding: 20px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; }
 

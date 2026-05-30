@@ -94,6 +94,12 @@ button { font-family: inherit; cursor: pointer; }
 .step-btn { width: 30px; height: 30px; border-radius: 8px; border: none; font-size: 18px; font-weight: bold; line-height: 1; background: var(--line); color: #ddd; }
 .stepper-val { font-size: 22px; font-weight: 800; min-width: 24px; }
 
+/* Lobby settings modal rows + top bar */
+.settings-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid rgba(255,255,255,.08); }
+.settings-row-label { font-weight: 700; font-size: 13px; }
+.settings-row-desc { font-size: 10px; color: var(--muted); }
+.lobby-top-bar { display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 8px; }
+
 .divider { height: 1px; background: var(--line); margin: 20px 0; }
 
 .primary-btn {

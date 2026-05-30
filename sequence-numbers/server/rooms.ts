@@ -19,6 +19,8 @@ import { applySettingsUpdate } from '../lib/settings';
 
 const rooms = new Map<string, ServerRoom>();
 const playerSocket = new Map<string, string>(); // playerId → socket.id
+const lastReactionAt = new Map<string, number>(); // playerId → last emoji time (anti-spam)
+const REACTION_COOLDOWN_MS = 3000; // one emoji per player per 3s
 
 // Pick a random image/gif from public/<folder>. Returns a URL path, or null if the folder
 // is empty/missing (the client then shows a built-in fallback animation).
@@ -286,13 +288,16 @@ export function registerHandlers(io: Server): void {
         if (!room) return;
         const actor = resolveActor(room);
         if (!actor) return;
-        const before = room.frozenPlayerIds ?? [];
+        // Detect success by card consumption — the freeze may resolve (and the target
+        // be skipped/thawed) within the same update, so checking frozenPlayerIds after
+        // the fact can miss it.
+        const hadCard = (room.hands[actor] ?? []).some((c) => c.id === cardId);
         const byName = room.players.find((p) => p.id === actor)?.name ?? 'Someone';
+        const targetName = room.players.find((p) => p.id === targetId)?.name ?? 'A player';
         const next = freezeCard(room, actor, cardId, targetId);
-        const added = (next.frozenPlayerIds ?? []).find((id) => !before.includes(id));
+        const succeeded = hadCard && !(next.hands[actor] ?? []).some((c) => c.id === cardId);
         applyAndBroadcast(code, next);
-        if (added) {
-          const targetName = room.players.find((p) => p.id === added)?.name ?? 'A player';
+        if (succeeded) {
           io.to(code).emit('card-effect', { kind: 'freeze', byName, targetName });
         }
       }
@@ -351,6 +356,9 @@ export function registerHandlers(io: Server): void {
     socket.on('reaction', ({ code, emoji }: { code: string; emoji: string }) => {
       const me = actorId();
       if (!me || typeof emoji !== 'string') return;
+      const now = Date.now();
+      if (now - (lastReactionAt.get(me) ?? 0) < REACTION_COOLDOWN_MS) return; // anti-spam
+      lastReactionAt.set(me, now);
       io.to(code).emit('reaction', { playerId: me, emoji });
     });
 

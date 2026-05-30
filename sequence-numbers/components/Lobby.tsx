@@ -1,7 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
 import QRCode from 'qrcode';
-import type { ClientView, TeamColor } from '@/types/game';
+import type { ClientView, TeamColor, Settings } from '@/types/game';
+import SettingsModal from './SettingsModal';
 
 const TEAM_NAME: Record<TeamColor, string> = {
   red: 'Red',
@@ -14,11 +15,14 @@ interface LobbyProps {
   view: ClientView;
   onAssign: (team: TeamColor) => void;
   onStart: () => void;
+  onUpdateSettings: (patch: Partial<Settings>) => void;
+  onExit: () => void;
 }
 
-export default function Lobby({ view, onAssign, onStart }: LobbyProps) {
+export default function Lobby({ view, onAssign, onStart, onUpdateSettings, onExit }: LobbyProps) {
   const [copied, setCopied] = useState(false);
   const [qr, setQr] = useState<string>('');
+  const [showSettings, setShowSettings] = useState(false);
   const mode = view.settings.mode;
   const isHost = view.myPlayerId === view.hostId;
   const realPlayers = view.players.filter((p) => !p.isSeat);
@@ -66,6 +70,25 @@ export default function Lobby({ view, onAssign, onStart }: LobbyProps) {
 
   return (
     <div className="page">
+      <div className="lobby-top-bar">
+        {isHost && (
+          <button
+            className="ghost-btn"
+            style={{ width: 'auto', padding: '6px 12px' }}
+            onClick={() => setShowSettings(true)}
+          >
+            ⚙️ Settings
+          </button>
+        )}
+        <button className="ghost-btn" style={{ width: 'auto', padding: '6px 12px' }} onClick={onExit}>
+          🚪 Exit
+        </button>
+      </div>
+
+      {showSettings && isHost && (
+        <SettingsModal view={view} onSave={onUpdateSettings} onClose={() => setShowSettings(false)} />
+      )}
+
       <div className="card-title">🎯 Waiting Room</div>
 
       {myTeam && (

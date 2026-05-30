@@ -112,6 +112,8 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
         view={view}
         onAssign={(team: TeamColor) => emit('assign-team', { code, playerId: myId, team })}
         onStart={() => emit('start-game', { code })}
+        onUpdateSettings={(patch) => emit('update-settings', { code, settings: patch })}
+        onExit={() => router.push('/')}
       />
     );
   }

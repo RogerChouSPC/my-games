@@ -48,9 +48,24 @@ export default function SettingsModal({ view, onSave, onClose }: Props) {
   const [plusCards, setPlusCards] = useState(s.plusCards);
   const [minusCards, setMinusCards] = useState(s.minusCards);
   const [freezeCards, setFreezeCards] = useState(s.freezeCards);
+  const [stealCards, setStealCards] = useState(s.stealCards);
+  const [shieldCards, setShieldCards] = useState(s.shieldCards);
+  const [bombCards, setBombCards] = useState(s.bombCards);
+  const [rerollCards, setRerollCards] = useState(s.rerollCards);
 
   const save = () => {
-    onSave({ boardSize, sequencesToWin, cardsPerPlayer, plusCards, minusCards, freezeCards });
+    onSave({
+      boardSize,
+      sequencesToWin,
+      cardsPerPlayer,
+      plusCards,
+      minusCards,
+      freezeCards,
+      stealCards,
+      shieldCards,
+      bombCards,
+      rerollCards,
+    });
     onClose();
   };
 
@@ -111,6 +126,10 @@ export default function SettingsModal({ view, onSave, onClose }: Props) {
         <Stepper label="➕ Plus (wild)" desc="Place a chip on any empty number" value={plusCards} set={setPlusCards} />
         <Stepper label="➖ Minus (remove)" desc="Remove an opponent chip" value={minusCards} set={setMinusCards} />
         <Stepper label="🧊 Freeze" desc="Skip an opponent's next turn" value={freezeCards} set={setFreezeCards} />
+        <Stepper label="🦹 Steal" desc="Flip an opponent chip to your colour" value={stealCards} set={setStealCards} />
+        <Stepper label="🛡️ Shield" desc="Protect one of your chips all game" value={shieldCards} set={setShieldCards} />
+        <Stepper label="💣 Bomb" desc="Clear a 2×2 patch of chips" value={bombCards} set={setBombCards} />
+        <Stepper label="🔀 Reroll" desc="Swap your whole hand for a fresh one" value={rerollCards} set={setRerollCards} />
 
         <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
           <button className="ghost-btn" onClick={onClose}>

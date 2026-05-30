@@ -56,6 +56,7 @@ export default function Board({ cells, size, targetable, lastMoveIndex, onPick }
                 {cell.owner && (
                   <Chip team={cell.owner} bumpy={cell.bumpy} inSequence={cell.inSequence} />
                 )}
+                {cell.shielded && <span className="shield-badge">🛡️</span>}
               </div>
             );
           })}

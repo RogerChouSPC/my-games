@@ -240,6 +240,7 @@ button { font-family: inherit; cursor: pointer; }
 .chip-green.bumpy { --chip-grad: radial-gradient(circle at 40% 30%, #ccff90, #388e3c, #003300); filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 8px #66bb6a) drop-shadow(0 3px 5px rgba(0,0,0,.7)); }
 .chip-yellow.bumpy { --chip-grad: radial-gradient(circle at 40% 30%, #fff59d, #fbc02d, #6f4e00); filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 8px #ffca28) drop-shadow(0 3px 5px rgba(0,0,0,.7)); }
 .chip.in-sequence { animation: seqpulse 1.4s ease-in-out infinite; }
+.shield-badge { position: absolute; top: -2px; right: -2px; font-size: clamp(8px, 2.6vw, 14px); z-index: 3; filter: drop-shadow(0 0 2px #000); pointer-events: none; }
 @keyframes seqpulse { 0%,100%{ filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 6px #ffd700) drop-shadow(0 3px 4px rgba(0,0,0,.7)); } 50%{ filter: drop-shadow(0 0 5px #fff) drop-shadow(0 0 14px #ffd700) drop-shadow(0 3px 4px rgba(0,0,0,.7)); } }
 
 /* Emoji panel */

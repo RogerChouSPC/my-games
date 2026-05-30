@@ -178,9 +178,18 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
       view.board.forEach((c) => {
         if (c.owner === null && c.value !== 'FREE') targetable.add(c.index);
       });
-    } else if (selectedCard.kind === 'minus') {
+    } else if (selectedCard.kind === 'minus' || selectedCard.kind === 'steal') {
       view.board.forEach((c) => {
-        if (c.owner !== null && c.owner !== previewTeam && !c.inSequence) targetable.add(c.index);
+        if (c.owner !== null && c.owner !== previewTeam && !c.inSequence && !c.shielded)
+          targetable.add(c.index);
+      });
+    } else if (selectedCard.kind === 'shield') {
+      view.board.forEach((c) => {
+        if (c.owner === previewTeam && !c.shielded) targetable.add(c.index);
+      });
+    } else if (selectedCard.kind === 'bomb') {
+      view.board.forEach((c) => {
+        if (c.value !== 'FREE') targetable.add(c.index); // any cell anchors the 2×2
       });
     }
   }
@@ -204,23 +213,32 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
     }
   }
   const hasFreezeTarget = eligibleFreezeTargets.size > 0;
+  const ownUnshielded = view.board.some((c) => c.owner === actingTeam && !c.shielded);
+  const anyChip = view.board.some((c) => c.owner !== null);
   const cardHasMove = (card: (typeof view.myHand)[number]) => {
     if (card.kind === 'plus') return emptyPlayable;
-    if (card.kind === 'minus') return removableOpp;
+    if (card.kind === 'minus' || card.kind === 'steal') return removableOpp;
+    if (card.kind === 'shield') return ownUnshielded;
+    if (card.kind === 'bomb') return anyChip;
+    if (card.kind === 'reroll') return view.deckCount > 0;
     if (card.kind === 'freeze') return hasFreezeTarget;
     return view.board.some((c) => c.owner === null && c.value === card.target);
   };
   const canMove = view.myHand.some(cardHasMove);
   const discardMode = myTurn && !frozen && view.myHand.length > 0 && !canMove;
 
+  const CELL_EVENT: Record<string, string> = {
+    number: 'play-number',
+    plus: 'play-plus',
+    minus: 'play-minus',
+    steal: 'play-steal',
+    shield: 'play-shield',
+    bomb: 'play-bomb',
+  };
   const handlePick = (cellIndex: number) => {
     if (!selectedCard || !myTurn || frozen) return; // can preview, but only place on your turn
-    const evt =
-      selectedCard.kind === 'number'
-        ? 'play-number'
-        : selectedCard.kind === 'plus'
-          ? 'play-plus'
-          : 'play-minus';
+    const evt = CELL_EVENT[selectedCard.kind];
+    if (!evt) return; // freeze (player-target) and reroll (no target) don't place on a cell
     emit(evt, { code, cardId: selectedCard.id, cellIndex });
     setSelectedCardId(null);
   };
@@ -351,6 +369,10 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
         }}
         onDiscard={(id) => {
           emit('discard-card', { code, cardId: id });
+          setSelectedCardId(null);
+        }}
+        onReroll={(id) => {
+          emit('play-reroll', { code, cardId: id });
           setSelectedCardId(null);
         }}
       />

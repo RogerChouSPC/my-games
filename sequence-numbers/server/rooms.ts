@@ -10,6 +10,10 @@ import {
   swapDeadCard,
   discardCard,
   freezeCard,
+  stealCard,
+  shieldCard,
+  rerollCard,
+  bombCard,
   nextGame,
   nextRound,
   declareLastGame,
@@ -301,6 +305,39 @@ export function registerHandlers(io: Server): void {
           io.to(code).emit('card-effect', { kind: 'freeze', byName, targetName });
         }
       }
+    );
+
+    // Shared driver for the cell-targeted / no-target special cards. Fires the themed
+    // card-effect overlay only when the card was actually consumed (a valid play).
+    const playSpecial = (
+      code: string,
+      cardId: string,
+      kind: 'steal' | 'shield' | 'bomb' | 'reroll',
+      run: (room: ServerRoom, actor: string) => ServerRoom
+    ) => {
+      const room = rooms.get(code);
+      if (!room) return;
+      const actor = resolveActor(room);
+      if (!actor) return;
+      const had = (room.hands[actor] ?? []).some((c) => c.id === cardId);
+      const byName = room.players.find((p) => p.id === actor)?.name ?? 'Someone';
+      const next = run(room, actor);
+      const ok = had && !(next.hands[actor] ?? []).some((c) => c.id === cardId);
+      applyAndBroadcast(code, next);
+      if (ok) io.to(code).emit('card-effect', { kind, byName });
+    };
+
+    socket.on('play-steal', ({ code, cardId, cellIndex }: { code: string; cardId: string; cellIndex: number }) =>
+      playSpecial(code, cardId, 'steal', (room, actor) => stealCard(room, actor, cardId, cellIndex))
+    );
+    socket.on('play-shield', ({ code, cardId, cellIndex }: { code: string; cardId: string; cellIndex: number }) =>
+      playSpecial(code, cardId, 'shield', (room, actor) => shieldCard(room, actor, cardId, cellIndex))
+    );
+    socket.on('play-bomb', ({ code, cardId, cellIndex }: { code: string; cardId: string; cellIndex: number }) =>
+      playSpecial(code, cardId, 'bomb', (room, actor) => bombCard(room, actor, cardId, cellIndex))
+    );
+    socket.on('play-reroll', ({ code, cardId }: { code: string; cardId: string }) =>
+      playSpecial(code, cardId, 'reroll', (room, actor) => rerollCard(room, actor, cardId))
     );
 
     // Host leaves the frozen winning board: go to the score screen (or final champion screen).

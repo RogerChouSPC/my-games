@@ -27,9 +27,16 @@ export function hasAnyLegalMove(room: RoomState, playerId: string): boolean {
     if (team && t.team && team === t.team) return false;
     return !(room.frozenPlayerIds ?? []).includes(pid);
   });
+  const hasOwnUnshielded = room.board.some((c) => c.owner === team && !c.shielded);
+  const hasAnyChip = room.board.some((c) => c.owner !== null);
+  const deckHasCards = (room.deckCount ?? 0) > 0;
   for (const card of hand) {
     if (card.kind === 'plus' && emptyPlayable) return true;
     if (card.kind === 'minus' && removableOpp) return true;
+    if (card.kind === 'steal' && removableOpp) return true;
+    if (card.kind === 'shield' && hasOwnUnshielded) return true;
+    if (card.kind === 'bomb' && hasAnyChip) return true;
+    if (card.kind === 'reroll' && deckHasCards) return true;
     if (card.kind === 'freeze' && hasFreezeTarget) return true;
     if (card.kind === 'number' && room.board.some((c) => c.owner === null && c.value === card.target))
       return true;
@@ -235,7 +242,8 @@ export function playMinusCard(
   if (room.turnOrder[room.currentTurn] !== playerId) return room;
   const cell = room.board[cellIndex];
   const myTeam = teamOf(room, playerId);
-  if (!cell || cell.owner === null || cell.owner === myTeam || cell.inSequence) return room;
+  if (!cell || cell.owner === null || cell.owner === myTeam || cell.inSequence || cell.shielded)
+    return room;
   const hand = room.hands[playerId] ?? [];
   const card = hand.find((c) => c.id === cardId);
   if (!card || card.kind !== 'minus') return room;
@@ -317,6 +325,124 @@ export function freezeCard(
   };
   next = drawOne(next, playerId);
   next = advanceTurn(next) as ServerRoom;
+  return next;
+}
+
+// Steal: flip one opponent chip (not in a sequence, not shielded) to your colour.
+export function stealCard(
+  room: ServerRoom,
+  playerId: string,
+  cardId: string,
+  cellIndex: number
+): ServerRoom {
+  if (room.roundWinner || room.roundTie) return room;
+  if (room.turnOrder[room.currentTurn] !== playerId) return room;
+  const hand = room.hands[playerId] ?? [];
+  const card = hand.find((c) => c.id === cardId);
+  if (!card || card.kind !== 'steal') return room;
+  const cell = room.board[cellIndex];
+  const myTeam = teamOf(room, playerId);
+  if (!cell || cell.owner === null || cell.owner === myTeam || cell.inSequence || cell.shielded)
+    return room;
+
+  let next: ServerRoom = {
+    ...room,
+    board: room.board.map((c, i) => (i === cellIndex ? { ...c, owner: myTeam } : c)),
+    hands: { ...room.hands, [playerId]: hand.filter((c) => c.id !== cardId) },
+    lastMove: { index: cellIndex, playerId },
+  };
+  next = recomputeBoardFlags(next) as ServerRoom;
+  next = drawOne(next, playerId);
+  next = checkWin(next) as ServerRoom;
+  next = checkDraw(next) as ServerRoom;
+  if (next.phase === 'playing' && !next.roundWinner && !next.roundTie)
+    next = advanceTurn(next) as ServerRoom;
+  return next;
+}
+
+// Shield: protect one of your own chips from Minus/Steal for the rest of the game.
+export function shieldCard(
+  room: ServerRoom,
+  playerId: string,
+  cardId: string,
+  cellIndex: number
+): ServerRoom {
+  if (room.roundWinner || room.roundTie) return room;
+  if (room.turnOrder[room.currentTurn] !== playerId) return room;
+  const hand = room.hands[playerId] ?? [];
+  const card = hand.find((c) => c.id === cardId);
+  if (!card || card.kind !== 'shield') return room;
+  const cell = room.board[cellIndex];
+  const myTeam = teamOf(room, playerId);
+  if (!cell || cell.owner !== myTeam || cell.shielded) return room; // own, not-yet-shielded chip
+
+  let next: ServerRoom = {
+    ...room,
+    board: room.board.map((c, i) => (i === cellIndex ? { ...c, shielded: true } : c)),
+    hands: { ...room.hands, [playerId]: hand.filter((c) => c.id !== cardId) },
+  };
+  next = drawOne(next, playerId);
+  next = advanceTurn(next) as ServerRoom;
+  return next;
+}
+
+// Reroll: discard your whole hand back into the deck and draw a fresh full hand.
+export function rerollCard(room: ServerRoom, playerId: string, cardId: string): ServerRoom {
+  if (room.roundWinner || room.roundTie) return room;
+  if (room.turnOrder[room.currentTurn] !== playerId) return room;
+  const hand = room.hands[playerId] ?? [];
+  const card = hand.find((c) => c.id === cardId);
+  if (!card || card.kind !== 'reroll') return room;
+  // Old cards (minus the reroll itself) return to the deck so the board stays fillable.
+  const deck = shuffle([...(room._deck ?? []), ...hand.filter((c) => c.id !== cardId)]);
+  const newHand = deck.slice(0, room.settings.cardsPerPlayer);
+  const rest = deck.slice(room.settings.cardsPerPlayer);
+  let next: ServerRoom = {
+    ...room,
+    hands: { ...room.hands, [playerId]: newHand },
+    _deck: rest,
+    deckCount: rest.length,
+  };
+  next = advanceTurn(next) as ServerRoom;
+  return next;
+}
+
+// Bomb: destroy every chip in a 2x2 block (clamped to the board) — no exceptions.
+export function bombCard(
+  room: ServerRoom,
+  playerId: string,
+  cardId: string,
+  anchorIndex: number
+): ServerRoom {
+  if (room.roundWinner || room.roundTie) return room;
+  if (room.turnOrder[room.currentTurn] !== playerId) return room;
+  const hand = room.hands[playerId] ?? [];
+  const card = hand.find((c) => c.id === cardId);
+  if (!card || card.kind !== 'bomb') return room;
+  const size = room.settings.boardSize;
+  if (anchorIndex < 0 || anchorIndex >= size * size) return room;
+  const row = Math.min(Math.floor(anchorIndex / size), size - 2);
+  const col = Math.min(anchorIndex % size, size - 2);
+  const blast = new Set([
+    row * size + col,
+    row * size + col + 1,
+    (row + 1) * size + col,
+    (row + 1) * size + col + 1,
+  ]);
+
+  let next: ServerRoom = {
+    ...room,
+    board: room.board.map((c, i) =>
+      blast.has(i) && c.value !== 'FREE' ? { ...c, owner: null, shielded: false } : c
+    ),
+    hands: { ...room.hands, [playerId]: hand.filter((c) => c.id !== cardId) },
+    lastMove: { index: row * size + col, playerId },
+  };
+  next = recomputeBoardFlags(next) as ServerRoom;
+  next = drawOne(next, playerId);
+  next = checkDraw(next) as ServerRoom;
+  if (next.phase === 'playing' && !next.roundWinner && !next.roundTie)
+    next = advanceTurn(next) as ServerRoom;
   return next;
 }
 

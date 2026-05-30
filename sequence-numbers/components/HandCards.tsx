@@ -11,6 +11,7 @@ interface HandCardsProps {
   onSelect: (cardId: string) => void;
   onSwapDead: (cardId: string) => void;
   onDiscard: (cardId: string) => void;
+  onReroll: (cardId: string) => void;
 }
 
 // A number card is dead if every board cell with its target is already owned.
@@ -39,6 +40,7 @@ export default function HandCards({
   onSelect,
   onSwapDead,
   onDiscard,
+  onReroll,
 }: HandCardsProps) {
   // The little team chip shown on the right edge of every card.
   const teamPiece = teamColor ? <span className={`card-team-piece ${teamColor}`} /> : null;
@@ -48,7 +50,15 @@ export default function HandCards({
     ? '🚫 No moves available — tap a card to discard it and draw a new one'
     : selected?.kind === 'freeze'
       ? '🧊 Tap an opponent in the bar above to freeze them'
-      : myTurn
+      : selected?.kind === 'reroll'
+        ? '🔀 Tap the Reroll card again to swap your whole hand'
+        : selected?.kind === 'shield'
+          ? '🛡️ Tap one of YOUR chips to protect it'
+          : selected?.kind === 'steal'
+            ? '🦹 Tap an opponent chip to steal it'
+            : selected?.kind === 'bomb'
+              ? '💣 Tap a spot to blow up that 2×2 patch'
+              : myTurn
         ? '🃏 Tap a card, then tap the matching circle on the board'
         : '🃏 Tap a card to preview your options — wait for your turn to place';
 
@@ -107,7 +117,9 @@ export default function HandCards({
                 key={card.id}
                 className={`hand-card${active ? ' active' : ''}`}
                 style={{ background: '#111' }}
-                onClick={() => handleTap(card, false)}
+                onClick={() =>
+                  card.kind === 'reroll' && active ? onReroll(card.id) : handleTap(card, false)
+                }
               >
                 {teamPiece}
                 <div className="card-body" style={{ flexDirection: 'column', gap: 4, padding: '14px 6px' }}>

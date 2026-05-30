@@ -7,6 +7,10 @@ import {
   swapDeadCard,
   discardCard,
   freezeCard,
+  stealCard,
+  shieldCard,
+  rerollCard,
+  bombCard,
   hasAnyLegalMove,
   nextGame,
   nextRound,
@@ -184,6 +188,94 @@ describe('freezeCard', () => {
     r.hands['p1'] = [freeze()];
     r = freezeCard(r, 'p1', 'f', 'p2');
     expect(r.hands['p1'].find((c) => c.id === 'f')).toBeDefined(); // refused, card kept
+  });
+});
+
+describe('stealCard', () => {
+  const steal = () => ({ id: 's', kind: 'steal' as const, target: null, equation: null, color: null });
+  it('flips an opponent chip (not in a sequence) to your colour', () => {
+    let r = startGame(baseRoom(), 'p1'); // p1 is red
+    r.turnOrder = ['p1', 'p2'];
+    r.currentTurn = 0;
+    const idx = r.board.findIndex((c) => c.value !== 'FREE');
+    r.board[idx].owner = 'blue';
+    r.hands['p1'] = [steal()];
+    r = stealCard(r, 'p1', 's', idx);
+    expect(r.board[idx].owner).toBe('red');
+  });
+  it('cannot steal a shielded chip', () => {
+    let r = startGame(baseRoom(), 'p1');
+    r.turnOrder = ['p1', 'p2'];
+    r.currentTurn = 0;
+    const idx = r.board.findIndex((c) => c.value !== 'FREE');
+    r.board[idx].owner = 'blue';
+    r.board[idx].shielded = true;
+    r.hands['p1'] = [steal()];
+    r = stealCard(r, 'p1', 's', idx);
+    expect(r.board[idx].owner).toBe('blue'); // protected
+  });
+});
+
+describe('shieldCard', () => {
+  const shield = () => ({ id: 'sh', kind: 'shield' as const, target: null, equation: null, color: null });
+  it('shields your own chip so Minus cannot remove it', () => {
+    let r = startGame(baseRoom(), 'p1');
+    r.turnOrder = ['p1', 'p2'];
+    r.currentTurn = 0;
+    const idx = r.board.findIndex((c) => c.value !== 'FREE');
+    r.board[idx].owner = 'red'; // p1's own chip
+    r.hands['p1'] = [shield()];
+    r = shieldCard(r, 'p1', 'sh', idx);
+    expect(r.board[idx].shielded).toBe(true);
+    // p2 (blue) now tries to remove it — must be blocked by the shield
+    r.currentTurn = r.turnOrder.indexOf('p2');
+    r.hands['p2'] = [{ id: 'm', kind: 'minus', target: null, equation: null, color: null }];
+    r = playMinusCard(r, 'p2', 'm', idx);
+    expect(r.board[idx].owner).toBe('red');
+  });
+});
+
+describe('rerollCard', () => {
+  const reroll = () => ({ id: 'rr', kind: 'reroll' as const, target: null, equation: null, color: null });
+  it('replaces the whole hand with a fresh full hand and passes the turn', () => {
+    let r = startGame(baseRoom(), 'p1');
+    r.turnOrder = ['p1', 'p2'];
+    r.currentTurn = 0;
+    r.hands['p1'] = [reroll(), { id: 'n1', kind: 'number', target: 5, equation: '5+0', color: '#000' }];
+    r = rerollCard(r, 'p1', 'rr');
+    expect(r.hands['p1'].find((c) => c.id === 'rr')).toBeUndefined(); // reroll consumed
+    expect(r.hands['p1'].length).toBe(r.settings.cardsPerPlayer);
+    expect(r.turnOrder[r.currentTurn]).toBe('p2');
+  });
+});
+
+describe('bombCard', () => {
+  const bomb = () => ({ id: 'b', kind: 'bomb' as const, target: null, equation: null, color: null });
+  it('clears every chip in the 2x2 — including shielded and in-sequence chips', () => {
+    let r = startGame(baseRoom(), 'p1');
+    r.turnOrder = ['p1', 'p2'];
+    r.currentTurn = 0;
+    r.board = r.board.map((c) => ({ ...c, owner: null, inSequence: false, shielded: false }));
+    const size = r.settings.boardSize; // 8
+    const anchor = 9; // row1,col1 → 2x2 of 9,10,17,18
+    const cells = [anchor, anchor + 1, anchor + size, anchor + size + 1];
+    cells.forEach((i, k) => (r.board[i].owner = k % 2 ? 'red' : 'blue'));
+    r.board[anchor].shielded = true;
+    r.board[anchor + 1].inSequence = true;
+    r.hands['p1'] = [bomb()];
+    r = bombCard(r, 'p1', 'b', anchor);
+    cells.forEach((i) => expect(r.board[i].owner).toBe(null));
+    expect(r.board[anchor].shielded).toBe(false);
+  });
+  it('clamps the 2x2 to stay on the board at an edge anchor', () => {
+    let r = startGame(baseRoom(), 'p1');
+    r.turnOrder = ['p1', 'p2'];
+    r.currentTurn = 0;
+    r.board = r.board.map((c) => ({ ...c, owner: null }));
+    r.board[15].owner = 'blue'; // row1,col7 (last column)
+    r.hands['p1'] = [bomb()];
+    r = bombCard(r, 'p1', 'b', 15);
+    expect(r.board[15].owner).toBe(null); // clamped 2x2 still covers it
   });
 });
 

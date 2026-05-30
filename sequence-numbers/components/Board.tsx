@@ -7,10 +7,18 @@ interface BoardProps {
   size: BoardSize;
   targetable: Set<number>;
   lastMoveIndex: number | null;
+  pendingShield?: number[];
   onPick: (index: number) => void;
 }
 
-export default function Board({ cells, size, targetable, lastMoveIndex, onPick }: BoardProps) {
+export default function Board({
+  cells,
+  size,
+  targetable,
+  lastMoveIndex,
+  pendingShield,
+  onPick,
+}: BoardProps) {
   return (
     <div className="board-area">
       <div className="board-wrap">
@@ -61,7 +69,9 @@ export default function Board({ cells, size, targetable, lastMoveIndex, onPick }
                     superSequence={cell.superSequence}
                   />
                 )}
-                {cell.shielded && <span className="shield-badge">🛡️</span>}
+                {(cell.shielded || pendingShield?.includes(cell.index)) && (
+                  <span className="shield-badge">🛡️</span>
+                )}
               </div>
             );
           })}

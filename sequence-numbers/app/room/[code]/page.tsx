@@ -45,6 +45,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [stealTarget, setStealTarget] = useState<string | null>(null); // opponent chosen for Steal
+  const [shieldPicks, setShieldPicks] = useState<number[]>([]); // chips chosen for a Shield (up to 2)
 
   // Resolve identity first; show picker if missing.
   useEffect(() => {
@@ -187,7 +188,8 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
       });
     } else if (selectedCard.kind === 'shield') {
       view.board.forEach((c) => {
-        if (c.owner === previewTeam && !c.shielded) targetable.add(c.index);
+        if (c.owner === previewTeam && !c.shielded && !shieldPicks.includes(c.index))
+          targetable.add(c.index);
       });
     } else if (selectedCard.kind === 'bomb') {
       view.board.forEach((c) => {
@@ -246,13 +248,26 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
     number: 'play-number',
     plus: 'play-plus',
     minus: 'play-minus',
-    shield: 'play-shield',
     bomb: 'play-bomb',
   };
   const handlePick = (cellIndex: number) => {
     if (!selectedCard || !myTurn || frozen) return; // can preview, but only place on your turn
+    // Shield: pick up to 2 of your own chips, then apply.
+    if (selectedCard.kind === 'shield') {
+      const picks = shieldPicks.includes(cellIndex) ? shieldPicks : [...shieldPicks, cellIndex];
+      const ownUnshielded = view.board.filter((c) => c.owner === actingTeam && !c.shielded).length;
+      const maxPicks = Math.min(2, ownUnshielded);
+      if (picks.length >= maxPicks) {
+        emit('play-shield', { code, cardId: selectedCard.id, cellIndices: picks });
+        setShieldPicks([]);
+        setSelectedCardId(null);
+      } else {
+        setShieldPicks(picks);
+      }
+      return;
+    }
     const evt = CELL_EVENT[selectedCard.kind];
-    if (!evt) return; // freeze (player-target) and reroll (no target) don't place on a cell
+    if (!evt) return; // freeze/steal (player-target) and reroll (no target) don't place on a cell
     emit(evt, { code, cardId: selectedCard.id, cellIndex });
     setSelectedCardId(null);
   };
@@ -393,6 +408,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
         size={view.settings.boardSize}
         targetable={targetable}
         lastMoveIndex={view.lastMove?.index ?? null}
+        pendingShield={selectedCard?.kind === 'shield' ? shieldPicks : undefined}
         onPick={handlePick}
       />
       <EmojiPanel onReact={(emoji) => emit('reaction', { code, emoji })} />
@@ -403,7 +419,10 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
         myTurn={myTurn}
         teamColor={actingTeam}
         discardMode={discardMode}
-        onSelect={(id) => setSelectedCardId((cur) => (cur === id ? null : id))}
+        onSelect={(id) => {
+          setShieldPicks([]);
+          setSelectedCardId((cur) => (cur === id ? null : id));
+        }}
         onSwapDead={(id) => {
           emit('swap-dead', { code, cardId: id });
           setSelectedCardId(null);

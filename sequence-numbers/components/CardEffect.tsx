@@ -12,6 +12,7 @@ const EFFECTS: Record<
   shield: { icon: '🛡️', cls: 'fx-shield', color: '#fff176', title: () => 'SHIELDED!' },
   bomb: { icon: '💥', cls: 'fx-bomb', color: '#ff7043', title: () => 'BOOM!' },
   reroll: { icon: '🔀', cls: 'fx-reroll', color: '#80cbc4', title: () => 'REROLL!' },
+  shieldblock: { icon: '🛡️', cls: 'fx-shield', color: '#fff176', title: () => 'BLOCKED!' },
 };
 
 export default function CardEffect({ event }: { event: CardEffectEvent | null }) {

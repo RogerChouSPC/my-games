@@ -224,20 +224,29 @@ describe('stealCard', () => {
 
 describe('shieldCard', () => {
   const shield = () => ({ id: 'sh', kind: 'shield' as const, target: null, equation: null, color: null });
-  it('shields your own chip so Minus cannot remove it', () => {
+  it('secretly shields up to 2 of your own chips', () => {
+    let r = startGame(baseRoom(), 'p1');
+    r.turnOrder = ['p1', 'p2'];
+    r.currentTurn = 0;
+    const own = r.board.filter((c) => c.value !== 'FREE').slice(0, 2).map((c) => c.index);
+    own.forEach((i) => (r.board[i].owner = 'red'));
+    r.hands['p1'] = [shield()];
+    r = shieldCard(r, 'p1', 'sh', own);
+    own.forEach((i) => expect(r.board[i].shielded).toBe(true));
+  });
+  it('a shielded chip absorbs one Minus hit: chip survives, shield breaks, card is spent', () => {
     let r = startGame(baseRoom(), 'p1');
     r.turnOrder = ['p1', 'p2'];
     r.currentTurn = 0;
     const idx = r.board.findIndex((c) => c.value !== 'FREE');
-    r.board[idx].owner = 'red'; // p1's own chip
-    r.hands['p1'] = [shield()];
-    r = shieldCard(r, 'p1', 'sh', idx);
-    expect(r.board[idx].shielded).toBe(true);
-    // p2 (blue) now tries to remove it — must be blocked by the shield
-    r.currentTurn = r.turnOrder.indexOf('p2');
-    r.hands['p2'] = [{ id: 'm', kind: 'minus', target: null, equation: null, color: null }];
+    r.board[idx].owner = 'red';
+    r.board[idx].shielded = true;
+    r.currentTurn = r.turnOrder.indexOf('p2'); // p2 (blue) attacks blindly
+    r.hands['p2'] = [{ id: 'm', kind: 'minus' as const, target: null, equation: null, color: null }];
     r = playMinusCard(r, 'p2', 'm', idx);
-    expect(r.board[idx].owner).toBe('red');
+    expect(r.board[idx].owner).toBe('red'); // survived
+    expect(r.board[idx].shielded).toBe(false); // shield broke (one-time)
+    expect(r.hands['p2'].find((c) => c.id === 'm')).toBeUndefined(); // minus spent
   });
 });
 
@@ -272,7 +281,7 @@ describe('rerollCard', () => {
 
 describe('bombCard', () => {
   const bomb = () => ({ id: 'b', kind: 'bomb' as const, target: null, equation: null, color: null });
-  it('clears every chip in the 2x2 — including shielded and in-sequence chips', () => {
+  it('clears the 2x2 but a shielded chip survives (its shield breaks)', () => {
     let r = startGame(baseRoom(), 'p1');
     r.turnOrder = ['p1', 'p2'];
     r.currentTurn = 0;
@@ -281,12 +290,15 @@ describe('bombCard', () => {
     const anchor = 9; // row1,col1 → 2x2 of 9,10,17,18
     const cells = [anchor, anchor + 1, anchor + size, anchor + size + 1];
     cells.forEach((i, k) => (r.board[i].owner = k % 2 ? 'red' : 'blue'));
-    r.board[anchor].shielded = true;
-    r.board[anchor + 1].inSequence = true;
+    r.board[anchor].shielded = true; // shielded chip survives
+    r.board[anchor + 1].inSequence = true; // in-sequence but not shielded → destroyed
     r.hands['p1'] = [bomb()];
     r = bombCard(r, 'p1', 'b', anchor);
-    cells.forEach((i) => expect(r.board[i].owner).toBe(null));
-    expect(r.board[anchor].shielded).toBe(false);
+    expect(r.board[anchor].owner).not.toBe(null); // shielded chip survived
+    expect(r.board[anchor].shielded).toBe(false); // its shield broke
+    [anchor + 1, anchor + size, anchor + size + 1].forEach((i) =>
+      expect(r.board[i].owner).toBe(null)
+    );
   });
   it('clamps the 2x2 to stay on the board at an edge anchor', () => {
     let r = startGame(baseRoom(), 'p1');

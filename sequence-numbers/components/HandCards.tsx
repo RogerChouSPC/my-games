@@ -53,7 +53,7 @@ export default function HandCards({
       : selected?.kind === 'reroll'
         ? '🔀 Tap another card to swap it + this Reroll for 2 fresh cards'
         : selected?.kind === 'shield'
-          ? '🛡️ Tap one of YOUR chips to protect it'
+          ? '🛡️ Tap up to 2 of YOUR chips to shield (hidden from enemies)'
           : selected?.kind === 'steal'
             ? '🦹 Tap an opponent in the bar above to steal a card'
             : selected?.kind === 'bomb'

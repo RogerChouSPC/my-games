@@ -18,7 +18,7 @@ export function hasAnyLegalMove(room: RoomState, playerId: string): boolean {
   const hand = room.hands[playerId] ?? [];
   const emptyPlayable = room.board.some((c) => c.owner === null && c.value !== 'FREE');
   const removableOpp = room.board.some(
-    (c) => c.owner !== null && c.owner !== team && !c.inSequence && !c.shielded
+    (c) => c.owner !== null && c.owner !== team && !c.inSequence
   );
   const hasFreezeTarget = room.turnOrder.some((pid) => {
     if (pid === playerId) return false;
@@ -255,11 +255,23 @@ export function playMinusCard(
   if (room.turnOrder[room.currentTurn] !== playerId) return room;
   const cell = room.board[cellIndex];
   const myTeam = teamOf(room, playerId);
-  if (!cell || cell.owner === null || cell.owner === myTeam || cell.inSequence || cell.shielded)
-    return room;
+  if (!cell || cell.owner === null || cell.owner === myTeam || cell.inSequence) return room;
   const hand = room.hands[playerId] ?? [];
   const card = hand.find((c) => c.id === cardId);
   if (!card || card.kind !== 'minus') return room;
+
+  // Hidden shield: the attack fizzles — the chip survives, the shield breaks
+  // (one-time), the card is spent and the turn ends. (Attacking blind is the gamble.)
+  if (cell.shielded) {
+    let blocked: ServerRoom = {
+      ...room,
+      board: room.board.map((c, i) => (i === cellIndex ? { ...c, shielded: false } : c)),
+      hands: { ...room.hands, [playerId]: hand.filter((c) => c.id !== cardId) },
+    };
+    blocked = drawOne(blocked, playerId);
+    blocked = advanceTurn(blocked) as ServerRoom;
+    return blocked;
+  }
 
   let next: ServerRoom = {
     ...room,
@@ -376,25 +388,31 @@ export function stealCard(
   return next;
 }
 
-// Shield: protect one of your own chips from Minus/Steal for the rest of the game.
+// Shield: secretly protect up to 2 of your own chips. A shield is hidden from
+// opponents and absorbs one Minus/Bomb hit (then breaks). Targets your own chips.
 export function shieldCard(
   room: ServerRoom,
   playerId: string,
   cardId: string,
-  cellIndex: number
+  cellIndices: number[]
 ): ServerRoom {
   if (room.roundWinner || room.roundTie) return room;
   if (room.turnOrder[room.currentTurn] !== playerId) return room;
   const hand = room.hands[playerId] ?? [];
   const card = hand.find((c) => c.id === cardId);
   if (!card || card.kind !== 'shield') return room;
-  const cell = room.board[cellIndex];
   const myTeam = teamOf(room, playerId);
-  if (!cell || cell.owner !== myTeam || cell.shielded) return room; // own, not-yet-shielded chip
+  const valid = [...new Set(cellIndices)]
+    .filter((i) => {
+      const c = room.board[i];
+      return c && c.owner === myTeam && !c.shielded && c.value !== 'FREE';
+    })
+    .slice(0, 2);
+  if (valid.length === 0) return room; // nothing valid to shield
 
   let next: ServerRoom = {
     ...room,
-    board: room.board.map((c, i) => (i === cellIndex ? { ...c, shielded: true } : c)),
+    board: room.board.map((c, i) => (valid.includes(i) ? { ...c, shielded: true } : c)),
     hands: { ...room.hands, [playerId]: hand.filter((c) => c.id !== cardId) },
   };
   next = drawOne(next, playerId);
@@ -430,7 +448,8 @@ export function rerollCard(
   return next;
 }
 
-// Bomb: destroy every chip in a 2x2 block (clamped to the board) — no exceptions.
+// Bomb: clear a 2x2 block (clamped to the board). Shielded chips survive the blast
+// (their shield breaks); everything else in the area is destroyed.
 export function bombCard(
   room: ServerRoom,
   playerId: string,
@@ -455,9 +474,11 @@ export function bombCard(
 
   let next: ServerRoom = {
     ...room,
-    board: room.board.map((c, i) =>
-      blast.has(i) && c.value !== 'FREE' ? { ...c, owner: null, shielded: false } : c
-    ),
+    board: room.board.map((c, i) => {
+      if (!blast.has(i) || c.value === 'FREE') return c;
+      if (c.shielded) return { ...c, shielded: false }; // shield absorbs the blast; chip survives
+      return { ...c, owner: null, shielded: false }; // destroyed
+    }),
     hands: { ...room.hands, [playerId]: hand.filter((c) => c.id !== cardId) },
     lastMove: { index: row * size + col, playerId },
   };

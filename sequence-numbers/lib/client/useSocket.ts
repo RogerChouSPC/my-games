@@ -46,7 +46,7 @@ export interface SuperEvent {
   key: number;
 }
 
-export type CardEffectKind = 'freeze' | 'steal' | 'shield' | 'bomb' | 'reroll';
+export type CardEffectKind = 'freeze' | 'steal' | 'shield' | 'bomb' | 'reroll' | 'shieldblock';
 
 export interface CardEffectEvent {
   kind: CardEffectKind;

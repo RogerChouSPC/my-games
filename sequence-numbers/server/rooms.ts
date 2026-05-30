@@ -67,7 +67,14 @@ function viewFor(room: ServerRoom, playerId: string): ClientView {
   // Card counts only (no card faces) so a Steal can show face-down cards to pick from.
   const handCounts: Record<string, number> = {};
   for (const [pid, h] of Object.entries(hands)) handCounts[pid] = h.length;
-  return { ...rest, myHand: hands[handOwner] ?? [], myPlayerId: playerId, handCounts };
+  // Hide shields on chips not owned by the viewer's team — opponents can't see them.
+  // In self-test the host plays every side, so they see all shields.
+  const viewerTeam = room.players.find((p) => p.id === playerId)?.team ?? null;
+  const seeAll = room.settings.mode === 'selftest' && playerId === room.hostId;
+  const board = seeAll
+    ? rest.board
+    : rest.board.map((c) => (c.shielded && c.owner !== viewerTeam ? { ...c, shielded: false } : c));
+  return { ...rest, board, myHand: hands[handOwner] ?? [], myPlayerId: playerId, handCounts };
 }
 
 function broadcast(io: Server, room: ServerRoom): void {
@@ -268,7 +275,11 @@ export function registerHandlers(io: Server): void {
         if (!room) return;
         const actor = resolveActor(room);
         if (!actor) return;
-        applyAndBroadcast(code, playMinusCard(room, actor, cardId, cellIndex));
+        const byName = room.players.find((p) => p.id === actor)?.name ?? 'Someone';
+        const next = playMinusCard(room, actor, cardId, cellIndex);
+        const shieldBroke = room.board.some((c, i) => c.shielded && next.board[i] && !next.board[i].shielded);
+        applyAndBroadcast(code, next);
+        if (shieldBroke) io.to(code).emit('card-effect', { kind: 'shieldblock', byName });
       }
     );
 
@@ -326,8 +337,10 @@ export function registerHandlers(io: Server): void {
       const byName = room.players.find((p) => p.id === actor)?.name ?? 'Someone';
       const next = run(room, actor);
       const ok = had && !(next.hands[actor] ?? []).some((c) => c.id === cardId);
+      // A Bomb that hits a hidden shield breaks it → show the BLOCKED animation instead.
+      const shieldBroke = room.board.some((c, i) => c.shielded && next.board[i] && !next.board[i].shielded);
       applyAndBroadcast(code, next);
-      if (ok) io.to(code).emit('card-effect', { kind, byName });
+      if (ok) io.to(code).emit('card-effect', { kind: shieldBroke ? 'shieldblock' : kind, byName });
     };
 
     socket.on(
@@ -337,8 +350,12 @@ export function registerHandlers(io: Server): void {
           stealCard(room, actor, cardId, targetPlayerId, cardIndex)
         )
     );
-    socket.on('play-shield', ({ code, cardId, cellIndex }: { code: string; cardId: string; cellIndex: number }) =>
-      playSpecial(code, cardId, 'shield', (room, actor) => shieldCard(room, actor, cardId, cellIndex))
+    socket.on(
+      'play-shield',
+      ({ code, cardId, cellIndices }: { code: string; cardId: string; cellIndices: number[] }) =>
+        playSpecial(code, cardId, 'shield', (room, actor) =>
+          shieldCard(room, actor, cardId, cellIndices ?? [])
+        )
     );
     socket.on('play-bomb', ({ code, cardId, cellIndex }: { code: string; cardId: string; cellIndex: number }) =>
       playSpecial(code, cardId, 'bomb', (room, actor) => bombCard(room, actor, cardId, cellIndex))

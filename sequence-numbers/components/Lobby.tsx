@@ -127,7 +127,7 @@ export default function Lobby({ view, onAssign, onStart, onUpdateSettings, onExi
 
       <div className="settings-badge" style={{ marginBottom: 14, display: 'block' }}>
         {view.settings.boardSize}×{view.settings.boardSize} board · {modeLabel} ·{' '}
-        {view.settings.sequencesToWin} seq to win · {view.settings.cardsPerPlayer} cards/player
+        {view.settings.sequencesToWin} Line Wins · {view.settings.cardsPerPlayer} cards/player
       </div>
 
       {/* ---- Self-test ---- */}

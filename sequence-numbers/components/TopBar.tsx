@@ -1,4 +1,5 @@
 'use client';
+import type { CSSProperties } from 'react';
 import type { TeamState, Player } from '@/types/game';
 
 const TEAM_HEX: Record<string, string> = {
@@ -12,6 +13,12 @@ const TEAM_EMOJI: Record<string, string> = {
   blue: '🔵',
   green: '🟢',
   yellow: '🟡',
+};
+const TEAM_NAME: Record<string, string> = {
+  red: 'Red',
+  blue: 'Blue',
+  green: 'Green',
+  yellow: 'Yellow',
 };
 
 interface TopBarProps {
@@ -50,11 +57,24 @@ export default function TopBar({
         </span>
       </div>
       <div className="score-row">
-        {teams.map((t) => (
-          <div key={t.color} className="score-chip" style={{ color: TEAM_HEX[t.color] }}>
-            {TEAM_EMOJI[t.color]} {t.sequencesThisGame}/{sequencesToWin}
-          </div>
-        ))}
+        {teams.map((t) => {
+          // Glow when a team is exactly one Line Win away from winning the game.
+          const oneAway =
+            t.sequencesThisGame >= 1 && t.sequencesThisGame === sequencesToWin - 1;
+          return (
+            <div
+              key={t.color}
+              className={`team-score-card${oneAway ? ' one-away' : ''}`}
+              style={{ color: TEAM_HEX[t.color], ['--team' as string]: TEAM_HEX[t.color] } as CSSProperties}
+              title={`${TEAM_NAME[t.color]} Team — ${t.sequencesThisGame} of ${sequencesToWin} Line Wins`}
+            >
+              <span className="tsc-top">
+                {TEAM_EMOJI[t.color]} {t.sequencesThisGame}/{sequencesToWin}
+              </span>
+              <span className="tsc-label">LINE WINS</span>
+            </div>
+          );
+        })}
         {onEndGame && (
           <button className="end-btn" onClick={onEndGame} title="End the game">
             ⏹ End

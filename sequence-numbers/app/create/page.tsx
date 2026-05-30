@@ -151,18 +151,18 @@ export default function CreateRoom() {
           <div className="opt-cards">
             <div className={`opt-card${boardSize === 8 ? ' active' : ''}`} onClick={() => setBoardSize(8)}>
               <div className="size">8 × 8</div>
-              <div className="rule">Numbers 1–30<br />5 in a row = sequence</div>
+              <div className="rule">Numbers 1–30<br />5 in a row = a Line Win</div>
             </div>
             <div className={`opt-card${boardSize === 9 ? ' active' : ''}`} onClick={() => setBoardSize(9)}>
               <div className="size">9 × 9</div>
-              <div className="rule">Numbers 1–38<br />6 in a row = sequence</div>
+              <div className="rule">Numbers 1–38<br />6 in a row = a Line Win</div>
             </div>
           </div>
         </div>
 
         {/* Sequences to win */}
         <div className="field">
-          <div className="field-label">Sequences to Win a Game</div>
+          <div className="field-label">Line Wins to Win a Game</div>
           <div className="num-btns">
             {[1, 2, 3, 4].map((n) => (
               <button

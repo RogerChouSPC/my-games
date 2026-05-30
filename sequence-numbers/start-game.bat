@@ -1,9 +1,9 @@
 @echo off
-title Sequence Numbers Launcher
+title Number Wars Launcher
 cd /d "%~dp0"
 
 echo ============================================================
-echo   SEQUENCE NUMBERS - starting up
+echo   NUMBER WARS - starting up
 echo ============================================================
 echo.
 
@@ -22,7 +22,7 @@ if errorlevel 1 (
 )
 
 echo 3) Starting the game server in a separate window...
-start "Sequence Numbers Server" cmd /k "npm run start"
+start "Number Wars Server" cmd /k "npm run start"
 
 echo 4) Waiting a few seconds for it to be ready...
 timeout /t 9 /nobreak >nul

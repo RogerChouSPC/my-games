@@ -19,7 +19,7 @@ export default function SuperSequence({ event }: { event: SuperEvent | null }) {
   return (
     <div className="gif-overlay">
       <div className="gif-card">
-        <div className="gif-title">⭐ SUPER SEQUENCE! ⭐</div>
+        <div className="gif-title">⭐ SUPER LINE WIN! ⭐</div>
         {active.gif ? (
           <img src={active.gif} alt="Super sequence!" className="gif-img" />
         ) : (

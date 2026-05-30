@@ -2,7 +2,7 @@ import './globals.css';
 import type { Metadata, Viewport } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Sequence Numbers',
+  title: 'Number Wars',
   description: 'A real-time multiplayer math strategy game',
 };
 

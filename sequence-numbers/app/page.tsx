@@ -14,8 +14,8 @@ export default function Home() {
   return (
     <main className="center-screen">
       <div className="logo">
-        <div className="logo-icon">🎯</div>
-        <div className="logo-title">SEQUENCE NUMBERS</div>
+        <div className="logo-icon">⚔️</div>
+        <div className="logo-title">NUMBER WARS</div>
         <div className="logo-sub">Math Strategy Game</div>
       </div>
 

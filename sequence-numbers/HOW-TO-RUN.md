@@ -1,4 +1,4 @@
-# How to run Sequence Numbers on your PC (free)
+# How to run Number Wars on your PC (free)
 
 This runs the game on your computer and gives you a temporary public link to share.
 It works **only while your PC is on and the two windows are open.**
@@ -7,7 +7,7 @@ It works **only while your PC is on and the two windows are open.**
 
 1. Double-click **`start-game.bat`** (in this folder).
 2. Two windows open:
-   - **"Sequence Numbers Server"** — the game engine. Leave it open.
+   - **"Number Wars Server"** — the game engine. Leave it open.
    - The **launcher window** — watch it for a line like:
      ```
      https://random-words-here.trycloudflare.com

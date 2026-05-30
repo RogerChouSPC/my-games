@@ -84,15 +84,15 @@ export default function SettingsModal({ view, onSave, onClose }: Props) {
         <div className="opt-cards" style={{ marginBottom: 12 }}>
           <div className={`opt-card${boardSize === 8 ? ' active' : ''}`} onClick={() => setBoardSize(8)}>
             <div className="size">8 × 8</div>
-            <div className="rule">1–30 · 5 in a row</div>
+            <div className="rule">1–30 · 5 = Line Win</div>
           </div>
           <div className={`opt-card${boardSize === 9 ? ' active' : ''}`} onClick={() => setBoardSize(9)}>
             <div className="size">9 × 9</div>
-            <div className="rule">1–38 · 6 in a row</div>
+            <div className="rule">1–38 · 6 = Line Win</div>
           </div>
         </div>
 
-        <div className="field-label">Sequences to Win</div>
+        <div className="field-label">Line Wins to Win</div>
         <div className="num-btns" style={{ marginBottom: 12 }}>
           {[1, 2, 3, 4].map((n) => (
             <button

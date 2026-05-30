@@ -15,6 +15,8 @@ const base: Settings = {
   shieldCards: 0,
   bombCards: 0,
   rerollCards: 0,
+  timerEnabled: false,
+  timerSeconds: 30,
 };
 
 describe('applySettingsUpdate', () => {

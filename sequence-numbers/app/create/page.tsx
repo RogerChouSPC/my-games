@@ -55,6 +55,8 @@ export default function CreateRoom() {
       shieldCards: 0,
       bombCards: 0,
       rerollCards: 0,
+      timerEnabled: false,
+      timerSeconds: 30,
     };
     emit('create-room', {
       player: { id: getPlayerId(), name: profile.name, icon: profile.icon },

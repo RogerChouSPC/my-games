@@ -8,6 +8,7 @@ interface BoardProps {
   targetable: Set<number>;
   lastMoveIndex: number | null;
   pendingShield?: number[];
+  revealNumbers?: boolean;
   onPick: (index: number) => void;
 }
 
@@ -17,6 +18,7 @@ export default function Board({
   targetable,
   lastMoveIndex,
   pendingShield,
+  revealNumbers,
   onPick,
 }: BoardProps) {
   return (
@@ -71,6 +73,9 @@ export default function Board({
                 )}
                 {(cell.shielded || pendingShield?.includes(cell.index)) && (
                   <span className="shield-badge">🛡️</span>
+                )}
+                {revealNumbers && cell.owner && cell.value !== 'FREE' && (
+                  <span className={`chip-reveal-num${topHalf ? ' rot' : ''}`}>{cell.value}</span>
                 )}
               </div>
             );

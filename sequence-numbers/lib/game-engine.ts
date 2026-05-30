@@ -17,9 +17,7 @@ export function hasAnyLegalMove(room: RoomState, playerId: string): boolean {
   const team = room.players.find((p) => p.id === playerId)?.team ?? null;
   const hand = room.hands[playerId] ?? [];
   const emptyPlayable = room.board.some((c) => c.owner === null && c.value !== 'FREE');
-  const removableOpp = room.board.some(
-    (c) => c.owner !== null && c.owner !== team && !c.inSequence
-  );
+  const removableOpp = room.board.some((c) => c.owner !== null && c.owner !== team);
   const hasFreezeTarget = room.turnOrder.some((pid) => {
     if (pid === playerId) return false;
     const t = room.players.find((p) => p.id === pid);
@@ -266,7 +264,8 @@ export function playMinusCard(
   if (room.turnOrder[room.currentTurn] !== playerId) return room;
   const cell = room.board[cellIndex];
   const myTeam = teamOf(room, playerId);
-  if (!cell || cell.owner === null || cell.owner === myTeam || cell.inSequence) return room;
+  // Minus may target any opponent chip — including one that's part of a Line Win.
+  if (!cell || cell.owner === null || cell.owner === myTeam) return room;
   const hand = room.hands[playerId] ?? [];
   const card = hand.find((c) => c.id === cardId);
   if (!card || card.kind !== 'minus') return room;
@@ -497,6 +496,54 @@ export function bombCard(
   if (next.phase === 'playing' && !next.roundWinner && !next.roundTie)
     next = advanceTurn(next) as ServerRoom;
   return next;
+}
+
+// Auto-resolve the current player's turn with a random legal move (used by the per-turn
+// timer). Picks a random turn-ending play + random target; otherwise discards or passes.
+export function autoMove(room: ServerRoom, playerId: string): ServerRoom {
+  if (room.roundWinner || room.roundTie) return room;
+  if (room.turnOrder[room.currentTurn] !== playerId) return room;
+  const pick = <T>(a: T[]): T => a[Math.floor(Math.random() * a.length)];
+  const hand = room.hands[playerId] ?? [];
+  const myTeam = teamOf(room, playerId);
+  const isOpp = (pid: string): boolean => {
+    if (pid === playerId) return false;
+    const t = room.players.find((p) => p.id === pid);
+    if (!t) return false;
+    return !(myTeam && t.team && myTeam === t.team);
+  };
+  const moves: Array<() => ServerRoom> = [];
+  for (const card of hand) {
+    if (card.kind === 'number') {
+      const cells = room.board.filter((c) => c.owner === null && c.value === card.target);
+      if (cells.length) moves.push(() => playNumberCard(room, playerId, card.id, pick(cells).index));
+    } else if (card.kind === 'plus') {
+      const cells = room.board.filter((c) => c.owner === null && c.value !== 'FREE');
+      if (cells.length) moves.push(() => playPlusCard(room, playerId, card.id, pick(cells).index));
+    } else if (card.kind === 'minus') {
+      const cells = room.board.filter((c) => c.owner !== null && c.owner !== myTeam && !c.inSequence);
+      if (cells.length) moves.push(() => playMinusCard(room, playerId, card.id, pick(cells).index));
+    } else if (card.kind === 'shield') {
+      const own = room.board.filter((c) => c.owner === myTeam && !c.shielded && c.value !== 'FREE');
+      if (own.length)
+        moves.push(() => shieldCard(room, playerId, card.id, shuffle(own).slice(0, 2).map((c) => c.index)));
+    } else if (card.kind === 'bomb') {
+      const owned = room.board.filter((c) => c.owner !== null);
+      if (owned.length) moves.push(() => bombCard(room, playerId, card.id, pick(owned).index));
+    } else if (card.kind === 'freeze') {
+      const targets = room.turnOrder.filter(
+        (pid) => isOpp(pid) && !(room.frozenPlayerIds ?? []).includes(pid)
+      );
+      if (targets.length) moves.push(() => freezeCard(room, playerId, card.id, pick(targets)));
+    }
+    // reroll & steal are free actions (don't end a turn) — not used to auto-resolve.
+  }
+  if (moves.length > 0) return pick(moves)();
+  // No turn-ending play: discard if genuinely stuck, otherwise just pass the turn.
+  if (hand.length > 0 && !hasAnyLegalMove(room, playerId)) {
+    return discardCard(room, playerId, pick(hand).id);
+  }
+  return advanceTurn(room) as ServerRoom;
 }
 
 export function nextGame(room: RoomState, winningTeam: TeamColor | null): ServerRoom {

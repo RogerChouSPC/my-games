@@ -99,6 +99,10 @@ button { font-family: inherit; cursor: pointer; }
 .settings-row-label { font-weight: 700; font-size: 13px; }
 .settings-row-desc { font-size: 10px; color: var(--muted); }
 .lobby-top-bar { display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 8px; }
+.toggle { width: 46px; height: 26px; border-radius: 14px; background: var(--line); border: none; position: relative; cursor: pointer; transition: background .15s; flex-shrink: 0; }
+.toggle.on { background: #43a047; }
+.toggle-knob { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: left .15s; }
+.toggle.on .toggle-knob { left: 23px; }
 
 .divider { height: 1px; background: var(--line); margin: 20px 0; }
 
@@ -221,6 +225,9 @@ button { font-family: inherit; cursor: pointer; }
 .turn-dot { width: 7px; height: 7px; border-radius: 50%; animation: blink 1s infinite; }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
 .turn-text { font-size: 11px; font-weight: 700; }
+.turn-timer { font-weight: 800; font-size: 12px; padding: 3px 8px; border-radius: 8px; background: var(--bg); border: 1px solid var(--line); color: #fff; white-space: nowrap; }
+.turn-timer.low { color: #fff; background: #c62828; border-color: #ef5350; animation: timerPulse .8s ease-in-out infinite; }
+@keyframes timerPulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
 .score-row { display: flex; gap: 5px; align-items: center; }
 .team-score-card { display: flex; flex-direction: column; align-items: center; line-height: 1.1; background: var(--bg); border: 1.5px solid currentColor; border-radius: 8px; padding: 2px 8px; font-weight: 800; }
 .team-score-card .tsc-top { font-size: 12px; white-space: nowrap; }
@@ -306,6 +313,8 @@ button { font-family: inherit; cursor: pointer; }
 .chip-yellow.bumpy { --chip-grad: radial-gradient(circle at 40% 30%, #fff59d, #fbc02d, #6f4e00); filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 8px #ffca28) drop-shadow(0 3px 5px rgba(0,0,0,.7)); }
 .chip.in-sequence { animation: seqpulse 1.4s ease-in-out infinite; }
 .shield-badge { position: absolute; top: -2px; right: -2px; font-size: clamp(8px, 2.6vw, 14px); z-index: 3; filter: drop-shadow(0 0 2px #000); pointer-events: none; }
+.chip-reveal-num { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 4; font-weight: 900; color: #fff; font-size: clamp(9px, 4vw, 20px); text-shadow: 0 1px 2px #000, 0 0 5px #000, 0 0 9px #000; pointer-events: none; }
+.chip-reveal-num.rot { transform: rotate(180deg); }
 @keyframes seqpulse { 0%,100%{ filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 6px #ffd700) drop-shadow(0 3px 4px rgba(0,0,0,.7)); } 50%{ filter: drop-shadow(0 0 5px #fff) drop-shadow(0 0 14px #ffd700) drop-shadow(0 3px 4px rgba(0,0,0,.7)); } }
 
 /* Emoji panel */

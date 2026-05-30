@@ -20,6 +20,8 @@ export interface Settings {
   shieldCards: number; // 0..4 (per deck)
   bombCards: number; // 0..4 (per deck)
   rerollCards: number; // 0..4 (per deck)
+  timerEnabled: boolean; // per-player move timer on/off
+  timerSeconds: number; // 10..120 seconds per turn (when enabled)
 }
 
 export interface Player {
@@ -83,6 +85,7 @@ export interface RoomState {
   roundTie: boolean; // game ended with no winner (board/deck exhausted); no points awarded
   superCount: number; // total full-length-line ("super") sequences on the board
   frozenPlayerIds: string[]; // players whose next turn is skipped (Freeze card); ice shatters on skip
+  turnEndsAt?: number | null; // epoch ms the current turn auto-resolves (when the timer is on)
 }
 
 // Server-only state extends RoomState with the live deck (never sent to clients).

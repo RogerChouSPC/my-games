@@ -16,5 +16,7 @@ export function applySettingsUpdate(current: Settings, patch: Partial<Settings>)
   if (typeof patch.shieldCards === 'number') next.shieldCards = clamp(patch.shieldCards, 0, 4);
   if (typeof patch.bombCards === 'number') next.bombCards = clamp(patch.bombCards, 0, 4);
   if (typeof patch.rerollCards === 'number') next.rerollCards = clamp(patch.rerollCards, 0, 4);
+  if (typeof patch.timerEnabled === 'boolean') next.timerEnabled = patch.timerEnabled;
+  if (typeof patch.timerSeconds === 'number') next.timerSeconds = clamp(patch.timerSeconds, 10, 120);
   return next;
 }

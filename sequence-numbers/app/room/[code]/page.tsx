@@ -200,8 +200,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
       });
     } else if (selectedCard.kind === 'minus') {
       view.board.forEach((c) => {
-        if (c.owner !== null && c.owner !== previewTeam && !c.inSequence && !c.shielded)
-          targetable.add(c.index);
+        if (c.owner !== null && c.owner !== previewTeam && !c.shielded) targetable.add(c.index);
       });
     } else if (selectedCard.kind === 'shield') {
       view.board.forEach((c) => {
@@ -380,6 +379,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
         activePlayer={activePlayer}
         myTurn={myTurn}
         selfTest={selfTest}
+        turnEndsAt={view.turnEndsAt}
         onEndGame={isHost ? requestEnd : undefined}
       />
       <PlayerStrip
@@ -426,6 +426,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
         targetable={targetable}
         lastMoveIndex={view.lastMove?.index ?? null}
         pendingShield={selectedCard?.kind === 'shield' ? shieldPicks : undefined}
+        revealNumbers={selectedCard?.kind === 'minus' || selectedCard?.kind === 'bomb'}
         onPick={handlePick}
       />
       <EmojiPanel onReact={(emoji) => emit('reaction', { code, emoji })} />

@@ -52,6 +52,8 @@ export default function SettingsModal({ view, onSave, onClose }: Props) {
   const [shieldCards, setShieldCards] = useState(s.shieldCards);
   const [bombCards, setBombCards] = useState(s.bombCards);
   const [rerollCards, setRerollCards] = useState(s.rerollCards);
+  const [timerEnabled, setTimerEnabled] = useState(s.timerEnabled);
+  const [timerSeconds, setTimerSeconds] = useState(s.timerSeconds);
 
   const save = () => {
     onSave({
@@ -65,6 +67,8 @@ export default function SettingsModal({ view, onSave, onClose }: Props) {
       shieldCards,
       bombCards,
       rerollCards,
+      timerEnabled,
+      timerSeconds,
     });
     onClose();
   };
@@ -130,6 +134,45 @@ export default function SettingsModal({ view, onSave, onClose }: Props) {
         <Stepper label="🛡️ Shield" desc="Secretly shield 2 of your chips (one-time)" value={shieldCards} set={setShieldCards} />
         <Stepper label="💣 Bomb" desc="Blow up a 2×2 patch of chips" value={bombCards} set={setBombCards} />
         <Stepper label="🔀 Reroll" desc="Swap this + one chosen card for 2 new" value={rerollCards} set={setRerollCards} />
+
+        <div className="field-label" style={{ marginTop: 16, marginBottom: 8 }}>
+          Move Timer
+        </div>
+        <div className="settings-row">
+          <div>
+            <div className="settings-row-label">⏱ Turn timer</div>
+            <div className="settings-row-desc">
+              {timerEnabled
+                ? `${timerSeconds}s per move — auto-plays a random move if time runs out`
+                : 'Off — players take as long as they like'}
+            </div>
+          </div>
+          <button
+            type="button"
+            className={`toggle${timerEnabled ? ' on' : ''}`}
+            onClick={() => setTimerEnabled((v) => !v)}
+            aria-pressed={timerEnabled}
+            aria-label="Toggle move timer"
+          >
+            <span className="toggle-knob" />
+          </button>
+        </div>
+        {timerEnabled && (
+          <div style={{ marginTop: 10 }}>
+            <input
+              type="range"
+              min={10}
+              max={120}
+              step={5}
+              value={timerSeconds}
+              onChange={(e) => setTimerSeconds(Number(e.target.value))}
+              style={{ width: '100%' }}
+            />
+            <div style={{ textAlign: 'center', fontWeight: 800, color: 'var(--accent)' }}>
+              {timerSeconds} seconds
+            </div>
+          </div>
+        )}
 
         <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
           <button className="ghost-btn" onClick={onClose}>

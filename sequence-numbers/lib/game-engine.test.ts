@@ -11,6 +11,7 @@ import {
   shieldCard,
   rerollCard,
   bombCard,
+  autoMove,
   hasAnyLegalMove,
   nextGame,
   nextRound,
@@ -36,6 +37,8 @@ function baseRoom(): RoomState {
       shieldCards: 0,
       bombCards: 0,
       rerollCards: 0,
+      timerEnabled: false,
+      timerSeconds: 30,
     },
     players: [
       { id: 'p1', name: 'A', icon: 1, team: 'red', connected: true },
@@ -131,11 +134,11 @@ describe('playMinusCard', () => {
     r = playMinusCard(r, 'p1', 'm', idx);
     expect(r.board[idx].owner).toBe('red');
   });
-  it('cannot remove a chip that is part of a completed sequence', () => {
+  it('CAN remove a chip that is part of a completed Line Win (breaking it)', () => {
     let r = startGame(baseRoom(), 'p1');
     r.board = r.board.map((c) => ({ ...c, owner: null, bumpy: false, inSequence: false }));
-    r.settings = { ...r.settings, sequencesToWin: 2 }; // one sequence shouldn't end the game
-    // red (p1) builds a 5-in-a-row completed sequence across cells 24..28
+    r.settings = { ...r.settings, sequencesToWin: 2 }; // one Line Win shouldn't end the game
+    // red (p1) builds a 5-in-a-row Line Win across cells 24..28
     const place = (idx: number) => {
       const cell = r.board[idx];
       const card = { id: 'c' + idx, kind: 'number' as const, target: cell.value as number, equation: '1+1', color: '#000' };
@@ -145,12 +148,13 @@ describe('playMinusCard', () => {
     };
     [24, 25, 26, 27, 28].forEach(place);
     expect([24, 25, 26, 27, 28].every((i) => r.board[i].inSequence)).toBe(true);
-    // blue (p2) tries to minus a chip inside red's completed sequence — must be refused
+    // blue (p2) minuses a chip inside red's Line Win — allowed; it breaks the line
     const minus = { id: 'm', kind: 'minus' as const, target: null, equation: null, color: null };
     r.hands['p2'] = [minus, ...(r.hands['p2'] ?? [])];
     r.currentTurn = r.turnOrder.indexOf('p2');
     r = playMinusCard(r, 'p2', 'm', 26);
-    expect(r.board[26].owner).toBe('red'); // locked — still red
+    expect(r.board[26].owner).toBe(null); // removed
+    expect(r.board[24].inSequence).toBe(false); // the Line Win is broken
   });
 });
 
@@ -229,6 +233,29 @@ describe('stealCard', () => {
     r = stealCard(r, 'p1', 's', 'p2', 0);
     expect(r.hands['p1'].find((c) => c.id === 's')).toBeDefined(); // refused, steal kept
     expect(r.hands['p2'].length).toBe(1); // untouched
+  });
+});
+
+describe('autoMove (timer auto-resolve)', () => {
+  it('auto-plays a legal move and advances the turn', () => {
+    let r = startGame(baseRoom(), 'p1');
+    r.turnOrder = ['p1', 'p2'];
+    r.currentTurn = 0;
+    const cell = r.board.find((c) => c.value !== 'FREE')!;
+    r.hands['p1'] = [
+      { id: 'n', kind: 'number', target: cell.value as number, equation: '1+1', color: '#000' },
+    ];
+    r = autoMove(r, 'p1');
+    expect(r.board.some((c) => c.value === cell.value && c.owner === 'red')).toBe(true);
+    expect(r.turnOrder[r.currentTurn]).toBe('p2'); // turn advanced
+  });
+  it('passes the turn when the player has no cards', () => {
+    let r = startGame(baseRoom(), 'p1');
+    r.turnOrder = ['p1', 'p2'];
+    r.currentTurn = 0;
+    r.hands['p1'] = [];
+    r = autoMove(r, 'p1');
+    expect(r.turnOrder[r.currentTurn]).toBe('p2');
   });
 });
 

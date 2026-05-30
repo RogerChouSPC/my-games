@@ -1,5 +1,5 @@
 'use client';
-import type { CSSProperties } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import type { TeamState, Player } from '@/types/game';
 
 const TEAM_HEX: Record<string, string> = {
@@ -27,6 +27,7 @@ interface TopBarProps {
   activePlayer: Player | null;
   myTurn: boolean;
   selfTest?: boolean;
+  turnEndsAt?: number | null;
   onEndGame?: () => void;
 }
 
@@ -36,8 +37,17 @@ export default function TopBar({
   activePlayer,
   myTurn,
   selfTest,
+  turnEndsAt,
   onEndGame,
 }: TopBarProps) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!turnEndsAt) return;
+    const id = setInterval(() => setNow(Date.now()), 500);
+    return () => clearInterval(id);
+  }, [turnEndsAt]);
+  const remaining = turnEndsAt ? Math.max(0, Math.ceil((turnEndsAt - now) / 1000)) : null;
+
   const turnColor = activePlayer?.team ? TEAM_HEX[activePlayer.team] : '#888';
   // In self-test the host plays every side, so name the active side instead of "Your Turn".
   const label = selfTest
@@ -56,6 +66,9 @@ export default function TopBar({
           {label}
         </span>
       </div>
+      {remaining !== null && (
+        <span className={`turn-timer${remaining <= 10 ? ' low' : ''}`}>⏱ {remaining}s</span>
+      )}
       <div className="score-row">
         {teams.map((t) => {
           // Glow when a team is exactly one Line Win away from winning the game.

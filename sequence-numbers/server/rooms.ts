@@ -14,6 +14,7 @@ import {
   shieldCard,
   rerollCard,
   bombCard,
+  autoMove,
   nextGame,
   nextRound,
   declareLastGame,
@@ -87,6 +88,51 @@ function broadcast(io: Server, room: ServerRoom): void {
 function winningTeamColor(room: ServerRoom): TeamColor | null {
   const top = [...room.teams].sort((a, b) => b.gameWins - a.gameWins)[0];
   return top ? top.color : null;
+}
+
+const turnTimers = new Map<string, ReturnType<typeof setTimeout>>(); // code → active turn timer
+
+// Apply a new room state, broadcast it, (re)arm the per-turn timer, and fire any
+// transient celebration. Used by both socket handlers and the auto-resolve timer.
+function commitRoom(io: Server, code: string, next: ServerRoom): void {
+  const room = rooms.get(code);
+  if (!room) return;
+  const superGained = next.superCount > room.superCount; // a full line was just formed
+  const justWon = !room.roundWinner && !!next.roundWinner; // a team just won
+  let result = next;
+  if (justWon) result = { ...result, roundWinnerGif: randomGif('winner') };
+  Object.assign(room, result);
+  armTurnTimer(io, code); // stamps room.turnEndsAt before we broadcast
+  broadcast(io, room);
+  if (superGained) io.to(code).emit('super-sequence', { gif: randomGif('super-sequence') });
+}
+
+// (Re)start the current player's move timer. On expiry, the server auto-plays a
+// random legal move for them. No-op (and clears) when the timer setting is off.
+function armTurnTimer(io: Server, code: string): void {
+  const existing = turnTimers.get(code);
+  if (existing) {
+    clearTimeout(existing);
+    turnTimers.delete(code);
+  }
+  const room = rooms.get(code);
+  if (!room) return;
+  const live = room.phase === 'playing' && room.settings.timerEnabled && !room.roundWinner && !room.roundTie;
+  if (!live) {
+    room.turnEndsAt = null;
+    return;
+  }
+  const seconds = Math.max(10, Math.min(120, room.settings.timerSeconds || 30));
+  room.turnEndsAt = Date.now() + seconds * 1000;
+  const timer = setTimeout(() => {
+    turnTimers.delete(code);
+    const r = rooms.get(code);
+    if (!r || r.phase !== 'playing' || r.roundWinner || r.roundTie || !r.settings.timerEnabled) return;
+    const current = r.turnOrder[r.currentTurn];
+    if (!current) return;
+    commitRoom(io, code, autoMove(r, current));
+  }, seconds * 1000);
+  turnTimers.set(code, timer);
 }
 
 export function registerHandlers(io: Server): void {
@@ -220,6 +266,7 @@ export function registerHandlers(io: Server): void {
         // Keep the host as a non-playing controller; seats are the players in turn order.
         room.players = [{ ...host, team: null, isSeat: false }, ...seats];
         Object.assign(room, startGame(room));
+        armTurnTimer(io, code);
         broadcast(io, room);
         return;
       }
@@ -231,20 +278,11 @@ export function registerHandlers(io: Server): void {
       // Teams mode: every configured team must have at least one player.
       if (room.settings.mode === 'teams' && sidesInPlay.size < room.settings.teamCount) return;
       Object.assign(room, startGame(room));
+      armTurnTimer(io, code);
       broadcast(io, room);
     });
 
-    const applyAndBroadcast = (code: string, next: ServerRoom) => {
-      const room = rooms.get(code);
-      if (!room) return;
-      const superGained = next.superCount > room.superCount; // a full line was just formed
-      const justWon = !room.roundWinner && !!next.roundWinner; // a team just won
-      let result = next;
-      if (justWon) result = { ...result, roundWinnerGif: randomGif('winner') };
-      Object.assign(room, result);
-      broadcast(io, room);
-      if (superGained) io.to(code).emit('super-sequence', { gif: randomGif('super-sequence') });
-    };
+    const applyAndBroadcast = (code: string, next: ServerRoom) => commitRoom(io, code, next);
 
     socket.on(
       'play-number',
@@ -371,6 +409,7 @@ export function registerHandlers(io: Server): void {
       const room = rooms.get(code);
       if (!room || !isHost(room)) return; // host only
       Object.assign(room, nextRound(room));
+      armTurnTimer(io, code); // leaving 'playing' clears the timer
       broadcast(io, room);
     });
 
@@ -378,6 +417,7 @@ export function registerHandlers(io: Server): void {
       const room = rooms.get(code);
       if (!room || !isHost(room)) return; // host only
       Object.assign(room, nextGame(room, winningTeamColor(room)));
+      armTurnTimer(io, code); // a fresh game re-arms the timer
       broadcast(io, room);
     });
 
@@ -392,6 +432,7 @@ export function registerHandlers(io: Server): void {
       const room = rooms.get(code);
       if (!room || !isHost(room)) return; // host only
       Object.assign(room, endGame(room));
+      armTurnTimer(io, code); // clears the timer (game over)
       broadcast(io, room);
     });
 
@@ -412,7 +453,9 @@ export function registerHandlers(io: Server): void {
       room._deck = [];
       room.turnOrder = [];
       room.currentTurn = 0;
+      room.turnEndsAt = null;
       room.players = room.players.filter((p) => !p.isSeat); // drop self-test seats
+      armTurnTimer(io, code); // back to lobby — no timer
       broadcast(io, room);
     });
 

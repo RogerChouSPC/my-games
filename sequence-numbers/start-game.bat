@@ -6,14 +6,29 @@ echo ============================================================
 echo   SEQUENCE NUMBERS - starting up
 echo ============================================================
 echo.
-echo 1) Starting the game server in a separate window...
+
+echo 1) Closing any old game server still using port 3000...
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":3000 " ^| findstr LISTENING') do taskkill /F /PID %%a >nul 2>&1
+
+echo 2) Building the latest version (the first run after changes can take ~30s)...
+call npm run build
+if errorlevel 1 (
+  echo.
+  echo    ******  BUILD FAILED - the game cannot start.  ******
+  echo    Copy the red text above and send it to Claude.
+  echo.
+  pause
+  exit /b 1
+)
+
+echo 3) Starting the game server in a separate window...
 start "Sequence Numbers Server" cmd /k "npm run start"
 
-echo 2) Waiting a few seconds for it to be ready...
+echo 4) Waiting a few seconds for it to be ready...
 timeout /t 9 /nobreak >nul
 
 echo.
-echo 3) Creating your public link with Cloudflare...
+echo 5) Creating your public link with Cloudflare...
 echo.
 echo    LOOK FOR A LINE LIKE:  https://something.trycloudflare.com
 echo    That is the link you share with friends.

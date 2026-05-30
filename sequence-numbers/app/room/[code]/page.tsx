@@ -20,6 +20,7 @@ import FinalWinner from '@/components/FinalWinner';
 import FloatingReactions from '@/components/FloatingReactions';
 import SuperSequence from '@/components/SuperSequence';
 import CardEffect from '@/components/CardEffect';
+import StealPicker from '@/components/StealPicker';
 
 const TEAM_HEX: Record<string, string> = {
   red: '#ef5350',
@@ -43,6 +44,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
   const [joined, setJoined] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [confirmEnd, setConfirmEnd] = useState(false);
+  const [stealTarget, setStealTarget] = useState<string | null>(null); // opponent chosen for Steal
 
   // Resolve identity first; show picker if missing.
   useEffect(() => {
@@ -178,7 +180,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
       view.board.forEach((c) => {
         if (c.owner === null && c.value !== 'FREE') targetable.add(c.index);
       });
-    } else if (selectedCard.kind === 'minus' || selectedCard.kind === 'steal') {
+    } else if (selectedCard.kind === 'minus') {
       view.board.forEach((c) => {
         if (c.owner !== null && c.owner !== previewTeam && !c.inSequence && !c.shielded)
           targetable.add(c.index);
@@ -213,11 +215,24 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
     }
   }
   const hasFreezeTarget = eligibleFreezeTargets.size > 0;
+  // Opponents you can steal a card from (they must hold at least one card).
+  const eligibleStealTargets = new Set<string>();
+  if (myTurn && !frozen) {
+    for (const pid of view.turnOrder) {
+      if (pid === activePlayerId) continue;
+      const t = view.players.find((p) => p.id === pid);
+      if (!t) continue;
+      if (actingTeam && t.team && actingTeam === t.team) continue;
+      if ((view.handCounts[pid] ?? 0) === 0) continue;
+      eligibleStealTargets.add(pid);
+    }
+  }
   const ownUnshielded = view.board.some((c) => c.owner === actingTeam && !c.shielded);
   const anyChip = view.board.some((c) => c.owner !== null);
   const cardHasMove = (card: (typeof view.myHand)[number]) => {
     if (card.kind === 'plus') return emptyPlayable;
-    if (card.kind === 'minus' || card.kind === 'steal') return removableOpp;
+    if (card.kind === 'minus') return removableOpp;
+    if (card.kind === 'steal') return eligibleStealTargets.size > 0;
     if (card.kind === 'shield') return ownUnshielded;
     if (card.kind === 'bomb') return anyChip;
     if (card.kind === 'reroll') return view.myHand.length > 1;
@@ -231,7 +246,6 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
     number: 'play-number',
     plus: 'play-plus',
     minus: 'play-minus',
-    steal: 'play-steal',
     shield: 'play-shield',
     bomb: 'play-bomb',
   };
@@ -340,13 +354,40 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
         players={view.players}
         activePlayerId={activePlayerId}
         frozenIds={view.frozenPlayerIds}
-        freezeTargets={selectedCard?.kind === 'freeze' ? eligibleFreezeTargets : undefined}
-        onFreezeTarget={(targetId) => {
-          if (!selectedCard) return;
-          emit('play-freeze', { code, cardId: selectedCard.id, targetId });
-          setSelectedCardId(null);
+        targetPlayers={
+          selectedCard?.kind === 'freeze'
+            ? eligibleFreezeTargets
+            : selectedCard?.kind === 'steal'
+              ? eligibleStealTargets
+              : undefined
+        }
+        onTargetPlayer={(pid) => {
+          if (selectedCard?.kind === 'freeze') {
+            emit('play-freeze', { code, cardId: selectedCard.id, targetId: pid });
+            setSelectedCardId(null);
+          } else if (selectedCard?.kind === 'steal') {
+            setStealTarget(pid); // open the blind card-pick
+          }
         }}
       />
+
+      {stealTarget && selectedCard?.kind === 'steal' && (
+        <StealPicker
+          targetName={view.players.find((p) => p.id === stealTarget)?.name ?? 'Opponent'}
+          count={view.handCounts[stealTarget] ?? 0}
+          onPick={(index) => {
+            emit('play-steal', {
+              code,
+              cardId: selectedCard.id,
+              targetPlayerId: stealTarget,
+              cardIndex: index,
+            });
+            setStealTarget(null);
+            setSelectedCardId(null);
+          }}
+          onCancel={() => setStealTarget(null)}
+        />
+      )}
       <Board
         cells={view.board}
         size={view.settings.boardSize}

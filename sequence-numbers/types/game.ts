@@ -94,6 +94,7 @@ export interface ServerRoom extends RoomState {
 export interface ClientView extends Omit<RoomState, 'hands'> {
   myHand: Card[];
   myPlayerId: string;
+  handCounts: Record<string, number>; // playerId → number of cards (for Steal's blind pick)
 }
 
 export interface PlayerInput {

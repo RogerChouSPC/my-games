@@ -193,26 +193,32 @@ describe('freezeCard', () => {
 
 describe('stealCard', () => {
   const steal = () => ({ id: 's', kind: 'steal' as const, target: null, equation: null, color: null });
-  it('flips an opponent chip (not in a sequence) to your colour', () => {
-    let r = startGame(baseRoom(), 'p1'); // p1 is red
-    r.turnOrder = ['p1', 'p2'];
-    r.currentTurn = 0;
-    const idx = r.board.findIndex((c) => c.value !== 'FREE');
-    r.board[idx].owner = 'blue';
-    r.hands['p1'] = [steal()];
-    r = stealCard(r, 'p1', 's', idx);
-    expect(r.board[idx].owner).toBe('red');
-  });
-  it('cannot steal a shielded chip', () => {
+  const num = (id: string, t: number) => ({ id, kind: 'number' as const, target: t, equation: `${t}+0`, color: '#000' });
+
+  it('takes the chosen card from an opponent into your hand and passes the turn', () => {
     let r = startGame(baseRoom(), 'p1');
     r.turnOrder = ['p1', 'p2'];
     r.currentTurn = 0;
-    const idx = r.board.findIndex((c) => c.value !== 'FREE');
-    r.board[idx].owner = 'blue';
-    r.board[idx].shielded = true;
     r.hands['p1'] = [steal()];
-    r = stealCard(r, 'p1', 's', idx);
-    expect(r.board[idx].owner).toBe('blue'); // protected
+    r.hands['p2'] = [num('a', 5), num('b', 9), num('c', 12)];
+    r = stealCard(r, 'p1', 's', 'p2', 1); // blindly pick index 1 ('b')
+    expect(r.hands['p1'].find((c) => c.id === 'b')).toBeDefined(); // I now hold it
+    expect(r.hands['p2'].find((c) => c.id === 'b')).toBeUndefined(); // they lost it
+    expect(r.hands['p2'].length).toBe(2); // victim is down a card
+    expect(r.hands['p1'].find((c) => c.id === 's')).toBeUndefined(); // steal card spent
+    expect(r.turnOrder[r.currentTurn]).toBe('p2');
+  });
+
+  it('cannot steal from a teammate (card not consumed)', () => {
+    let r = startGame(baseRoom(), 'p1');
+    r.players = r.players.map((p) => ({ ...p, team: 'red' }));
+    r.turnOrder = ['p1', 'p2'];
+    r.currentTurn = 0;
+    r.hands['p1'] = [steal()];
+    r.hands['p2'] = [num('a', 5)];
+    r = stealCard(r, 'p1', 's', 'p2', 0);
+    expect(r.hands['p1'].find((c) => c.id === 's')).toBeDefined(); // refused
+    expect(r.hands['p2'].length).toBe(1);
   });
 });
 

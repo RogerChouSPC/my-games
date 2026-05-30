@@ -13,16 +13,16 @@ interface PlayerStripProps {
   players: Player[];
   activePlayerId: string | null;
   frozenIds?: string[];
-  freezeTargets?: Set<string>;
-  onFreezeTarget?: (playerId: string) => void;
+  targetPlayers?: Set<string>; // opponents you can tap (Freeze or Steal)
+  onTargetPlayer?: (playerId: string) => void;
 }
 
 export default function PlayerStrip({
   players,
   activePlayerId,
   frozenIds = [],
-  freezeTargets,
-  onFreezeTarget,
+  targetPlayers,
+  onTargetPlayer,
 }: PlayerStripProps) {
   const [shattering, setShattering] = useState<string[]>([]);
   const prevFrozen = useRef<string[]>([]);
@@ -43,7 +43,7 @@ export default function PlayerStrip({
   return (
     <div className="players-strip">
       {players.map((p) => {
-        const isTarget = !!freezeTargets?.has(p.id);
+        const isTarget = !!targetPlayers?.has(p.id);
         const frozen = frozenIds.includes(p.id);
         const shatter = shattering.includes(p.id);
         return (
@@ -51,9 +51,9 @@ export default function PlayerStrip({
             key={p.id}
             className={`player-chip${p.id === activePlayerId ? ' active-turn' : ''}${
               p.connected ? '' : ' disconnected'
-            }${isTarget ? ' freeze-target' : ''}`}
+            }${isTarget ? ' player-target' : ''}`}
             onClick={() => {
-              if (isTarget) onFreezeTarget?.(p.id);
+              if (isTarget) onTargetPlayer?.(p.id);
             }}
           >
             {p.team && <span className="player-team-dot" style={{ background: TEAM_HEX[p.team] }} />}

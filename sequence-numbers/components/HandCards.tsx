@@ -55,7 +55,7 @@ export default function HandCards({
         : selected?.kind === 'shield'
           ? '🛡️ Tap one of YOUR chips to protect it'
           : selected?.kind === 'steal'
-            ? '🦹 Tap an opponent chip to steal it'
+            ? '🦹 Tap an opponent in the bar above to steal a card'
             : selected?.kind === 'bomb'
               ? '💣 Tap a spot to blow up that 2×2 patch'
               : myTurn

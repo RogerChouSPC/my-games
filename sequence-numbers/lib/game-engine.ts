@@ -29,10 +29,17 @@ export function hasAnyLegalMove(room: RoomState, playerId: string): boolean {
   });
   const hasOwnUnshielded = room.board.some((c) => c.owner === team && !c.shielded);
   const hasAnyChip = room.board.some((c) => c.owner !== null);
+  const hasStealTarget = room.turnOrder.some((pid) => {
+    if (pid === playerId) return false;
+    const t = room.players.find((p) => p.id === pid);
+    if (!t) return false;
+    if (team && t.team && team === t.team) return false;
+    return (room.hands[pid]?.length ?? 0) > 0;
+  });
   for (const card of hand) {
     if (card.kind === 'plus' && emptyPlayable) return true;
     if (card.kind === 'minus' && removableOpp) return true;
-    if (card.kind === 'steal' && removableOpp) return true;
+    if (card.kind === 'steal' && hasStealTarget) return true;
     if (card.kind === 'shield' && hasOwnUnshielded) return true;
     if (card.kind === 'bomb' && hasAnyChip) return true;
     if (card.kind === 'reroll' && hand.length > 1) return true;
@@ -334,35 +341,38 @@ export function freezeCard(
   return next;
 }
 
-// Steal: flip one opponent chip (not in a sequence, not shielded) to your colour.
+// Steal: take one (blindly chosen) card from a chosen opponent's hand into yours.
+// Targets a player, not a cell. The victim is left one card down.
 export function stealCard(
   room: ServerRoom,
   playerId: string,
   cardId: string,
-  cellIndex: number
+  targetPlayerId: string,
+  cardIndex: number
 ): ServerRoom {
   if (room.roundWinner || room.roundTie) return room;
   if (room.turnOrder[room.currentTurn] !== playerId) return room;
   const hand = room.hands[playerId] ?? [];
   const card = hand.find((c) => c.id === cardId);
   if (!card || card.kind !== 'steal') return room;
-  const cell = room.board[cellIndex];
-  const myTeam = teamOf(room, playerId);
-  if (!cell || cell.owner === null || cell.owner === myTeam || cell.inSequence || cell.shielded)
-    return room;
+  const me = room.players.find((p) => p.id === playerId);
+  const target = room.players.find((p) => p.id === targetPlayerId);
+  if (!me || !target || targetPlayerId === playerId) return room; // not yourself
+  if (me.team && target.team && me.team === target.team) return room; // not a teammate
+  if (!room.turnOrder.includes(targetPlayerId)) return room; // an active player
+  const victimHand = room.hands[targetPlayerId] ?? [];
+  if (victimHand.length === 0) return room; // nothing to steal
+  const idx = Math.max(0, Math.min(Math.floor(cardIndex), victimHand.length - 1));
+  const stolen = victimHand[idx];
 
+  // Spend the steal card, take the chosen card; the victim is down one card.
+  const myHand = [...hand.filter((c) => c.id !== cardId), stolen];
+  const newVictimHand = victimHand.filter((_, i) => i !== idx);
   let next: ServerRoom = {
     ...room,
-    board: room.board.map((c, i) => (i === cellIndex ? { ...c, owner: myTeam } : c)),
-    hands: { ...room.hands, [playerId]: hand.filter((c) => c.id !== cardId) },
-    lastMove: { index: cellIndex, playerId },
+    hands: { ...room.hands, [playerId]: myHand, [targetPlayerId]: newVictimHand },
   };
-  next = recomputeBoardFlags(next) as ServerRoom;
-  next = drawOne(next, playerId);
-  next = checkWin(next) as ServerRoom;
-  next = checkDraw(next) as ServerRoom;
-  if (next.phase === 'playing' && !next.roundWinner && !next.roundTie)
-    next = advanceTurn(next) as ServerRoom;
+  next = advanceTurn(next) as ServerRoom;
   return next;
 }
 

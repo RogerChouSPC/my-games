@@ -8,7 +8,7 @@ const EFFECTS: Record<
   { icon: string; cls: string; color: string; title: (e: CardEffectEvent) => string }
 > = {
   freeze: { icon: '🧊', cls: 'fx-freeze', color: '#80d8ff', title: (e) => `${e.targetName ?? 'A player'} is FROZEN!` },
-  steal: { icon: '🦹', cls: 'fx-steal', color: '#ce93d8', title: (e) => `${e.byName} STOLE a chip!` },
+  steal: { icon: '🦹', cls: 'fx-steal', color: '#ce93d8', title: (e) => `${e.byName} STOLE a card!` },
   shield: { icon: '🛡️', cls: 'fx-shield', color: '#fff176', title: () => 'SHIELDED!' },
   bomb: { icon: '💥', cls: 'fx-bomb', color: '#ff7043', title: () => 'BOOM!' },
   reroll: { icon: '🔀', cls: 'fx-reroll', color: '#80cbc4', title: () => 'REROLL!' },

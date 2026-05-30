@@ -64,7 +64,10 @@ function viewFor(room: ServerRoom, playerId: string): ClientView {
     room.settings.mode === 'selftest' && playerId === room.hostId && room.phase === 'playing'
       ? room.turnOrder[room.currentTurn]
       : playerId;
-  return { ...rest, myHand: hands[handOwner] ?? [], myPlayerId: playerId };
+  // Card counts only (no card faces) so a Steal can show face-down cards to pick from.
+  const handCounts: Record<string, number> = {};
+  for (const [pid, h] of Object.entries(hands)) handCounts[pid] = h.length;
+  return { ...rest, myHand: hands[handOwner] ?? [], myPlayerId: playerId, handCounts };
 }
 
 function broadcast(io: Server, room: ServerRoom): void {
@@ -327,8 +330,12 @@ export function registerHandlers(io: Server): void {
       if (ok) io.to(code).emit('card-effect', { kind, byName });
     };
 
-    socket.on('play-steal', ({ code, cardId, cellIndex }: { code: string; cardId: string; cellIndex: number }) =>
-      playSpecial(code, cardId, 'steal', (room, actor) => stealCard(room, actor, cardId, cellIndex))
+    socket.on(
+      'play-steal',
+      ({ code, cardId, targetPlayerId, cardIndex }: { code: string; cardId: string; targetPlayerId: string; cardIndex: number }) =>
+        playSpecial(code, cardId, 'steal', (room, actor) =>
+          stealCard(room, actor, cardId, targetPlayerId, cardIndex)
+        )
     );
     socket.on('play-shield', ({ code, cardId, cellIndex }: { code: string; cardId: string; cellIndex: number }) =>
       playSpecial(code, cardId, 'shield', (room, actor) => shieldCard(room, actor, cardId, cellIndex))

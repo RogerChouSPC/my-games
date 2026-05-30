@@ -70,17 +70,15 @@ export default function Lobby({
   };
 
   const modeNoun = mode === 'teams' ? 'Teams' : mode === 'solo' ? 'Players' : 'Sides';
-  const specialCards = (
-    [
-      ['➕', view.settings.plusCards],
-      ['➖', view.settings.minusCards],
-      ['🧊', view.settings.freezeCards],
-      ['🦹', view.settings.stealCards],
-      ['🛡️', view.settings.shieldCards],
-      ['💣', view.settings.bombCards],
-      ['🔀', view.settings.rerollCards],
-    ] as const
-  ).filter(([, n]) => n > 0);
+  const specialCards = [
+    { key: 'plus', icon: '➕', label: 'WILD', accent: '#ffd54f', n: view.settings.plusCards },
+    { key: 'minus', icon: '➖', label: 'REMOVE', accent: '#ff5252', n: view.settings.minusCards },
+    { key: 'freeze', icon: '🧊', label: 'FREEZE', accent: '#80d8ff', n: view.settings.freezeCards },
+    { key: 'steal', icon: '🦹', label: 'STEAL', accent: '#ce93d8', n: view.settings.stealCards },
+    { key: 'shield', icon: '🛡️', label: 'SHIELD', accent: '#fff176', n: view.settings.shieldCards },
+    { key: 'bomb', icon: '💣', label: 'BOMB', accent: '#ff7043', n: view.settings.bombCards },
+    { key: 'reroll', icon: '🔀', label: 'REROLL', accent: '#80cbc4', n: view.settings.rerollCards },
+  ];
 
   return (
     <div className="page">
@@ -170,17 +168,22 @@ export default function Lobby({
             <span className="gs-lbl">Timer</span>
           </div>
         </div>
-        {specialCards.length > 0 && (
-          <div className="gs-cards">
-            <span className="gs-cards-lbl">Special cards</span>
-            {specialCards.map(([ic, n]) => (
-              <span key={ic} className="gs-card-item">
-                {ic}
-                <span className="gs-card-n">×{n}</span>
-              </span>
+        <div className="gs-cards">
+          <span className="gs-cards-lbl">Special cards in deck</span>
+          <div className="gs-cards-row">
+            {specialCards.map((c) => (
+              <div key={c.key} className={`gs-card${c.n === 0 ? ' off' : ''}`}>
+                <div className="mini-card" style={{ borderColor: c.n > 0 ? c.accent : undefined }}>
+                  <span className="mini-card-icon">{c.icon}</span>
+                  <span className="mini-card-label" style={{ color: c.n > 0 ? c.accent : undefined }}>
+                    {c.label}
+                  </span>
+                </div>
+                <span className="gs-card-count">×{c.n}</span>
+              </div>
             ))}
           </div>
-        )}
+        </div>
       </div>
 
       {/* ---- Self-test ---- */}

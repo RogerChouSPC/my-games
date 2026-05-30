@@ -235,10 +235,15 @@ button { font-family: inherit; cursor: pointer; }
 .gs-stat { display: flex; flex-direction: column; align-items: center; gap: 3px; background: rgba(0,0,0,.28); border: 1px solid rgba(255,255,255,.05); border-radius: 11px; padding: 9px 6px; }
 .gs-val { font-family: 'Russo One', system-ui, sans-serif; font-size: 19px; line-height: 1; color: var(--accent); }
 .gs-lbl { font-size: 9.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; text-align: center; }
-.gs-cards { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.07); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.gs-cards-lbl { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
-.gs-card-item { font-size: 19px; display: inline-flex; align-items: baseline; }
-.gs-card-n { font-size: 12px; font-weight: 800; color: #fff; margin-left: 1px; }
+.gs-cards { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.07); }
+.gs-cards-lbl { display: block; margin-bottom: 9px; font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+.gs-cards-row { display: flex; gap: 9px; flex-wrap: wrap; }
+.gs-card { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.gs-card.off { opacity: 0.38; }
+.mini-card { width: 44px; height: 58px; border-radius: 9px; background: #111; border: 1.5px solid rgba(255,255,255,.14); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; box-shadow: 1px 2px 6px rgba(0,0,0,.5); }
+.mini-card-icon { font-size: 19px; line-height: 1; }
+.mini-card-label { font-size: 6px; font-weight: 800; letter-spacing: .5px; color: rgba(255,255,255,.55); }
+.gs-card-count { font-family: 'Russo One', system-ui, sans-serif; font-size: 13px; color: #fff; }
 .team-name { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; }
 .team-dot { width: 10px; height: 10px; border-radius: 50%; }
 .team-count { font-size: 10px; color: var(--muted); }

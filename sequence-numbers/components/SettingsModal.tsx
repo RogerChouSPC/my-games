@@ -126,10 +126,10 @@ export default function SettingsModal({ view, onSave, onClose }: Props) {
         <Stepper label="➕ Plus (wild)" desc="Place a chip on any empty number" value={plusCards} set={setPlusCards} />
         <Stepper label="➖ Minus (remove)" desc="Remove an opponent chip" value={minusCards} set={setMinusCards} />
         <Stepper label="🧊 Freeze" desc="Skip an opponent's next turn" value={freezeCards} set={setFreezeCards} />
-        <Stepper label="🦹 Steal" desc="Flip an opponent chip to your colour" value={stealCards} set={setStealCards} />
-        <Stepper label="🛡️ Shield" desc="Protect one of your chips all game" value={shieldCards} set={setShieldCards} />
-        <Stepper label="💣 Bomb" desc="Clear a 2×2 patch of chips" value={bombCards} set={setBombCards} />
-        <Stepper label="🔀 Reroll" desc="Swap your whole hand for a fresh one" value={rerollCards} set={setRerollCards} />
+        <Stepper label="🦹 Steal" desc="Take a hidden card from an opponent's hand" value={stealCards} set={setStealCards} />
+        <Stepper label="🛡️ Shield" desc="Secretly shield 2 of your chips (one-time)" value={shieldCards} set={setShieldCards} />
+        <Stepper label="💣 Bomb" desc="Blow up a 2×2 patch of chips" value={bombCards} set={setBombCards} />
+        <Stepper label="🔀 Reroll" desc="Swap this + one chosen card for 2 new" value={rerollCards} set={setRerollCards} />
 
         <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
           <button className="ghost-btn" onClick={onClose}>

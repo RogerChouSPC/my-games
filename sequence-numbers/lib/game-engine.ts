@@ -378,14 +378,13 @@ export function stealCard(
   const stolen = victimHand[idx];
 
   // Spend the steal card, take the chosen card; the victim is down one card.
+  // Does NOT end your turn — you still play a card afterward.
   const myHand = [...hand.filter((c) => c.id !== cardId), stolen];
   const newVictimHand = victimHand.filter((_, i) => i !== idx);
-  let next: ServerRoom = {
+  return {
     ...room,
     hands: { ...room.hands, [playerId]: myHand, [targetPlayerId]: newVictimHand },
-  };
-  next = advanceTurn(next) as ServerRoom;
-  return next;
+  }; // no advanceTurn — the player still makes a move this turn
 }
 
 // Shield: secretly protect up to 2 of your own chips. A shield is hidden from
@@ -422,6 +421,7 @@ export function shieldCard(
 
 // Reroll: swap the reroll card and one chosen card for two fresh ones. The chosen
 // card returns to the deck (shuffled, for future players); the reroll card is spent.
+// Does NOT end your turn — you still play a card afterward.
 export function rerollCard(
   room: ServerRoom,
   playerId: string,
@@ -438,14 +438,12 @@ export function rerollCard(
   const deck = shuffle([...(room._deck ?? []), swap]); // chosen card returns to the deck
   const drawn = deck.slice(0, 2);
   const rest = deck.slice(2);
-  let next: ServerRoom = {
+  return {
     ...room,
     hands: { ...room.hands, [playerId]: [...kept, ...drawn] },
     _deck: rest,
     deckCount: rest.length,
-  };
-  next = advanceTurn(next) as ServerRoom;
-  return next;
+  }; // no advanceTurn — the player still makes a move this turn
 }
 
 // Bomb: clear a 2x2 block (clamped to the board). Shielded chips survive the blast

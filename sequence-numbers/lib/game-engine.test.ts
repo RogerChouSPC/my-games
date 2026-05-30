@@ -195,7 +195,7 @@ describe('stealCard', () => {
   const steal = () => ({ id: 's', kind: 'steal' as const, target: null, equation: null, color: null });
   const num = (id: string, t: number) => ({ id, kind: 'number' as const, target: t, equation: `${t}+0`, color: '#000' });
 
-  it('takes the chosen card from an opponent into your hand and passes the turn', () => {
+  it('takes the chosen card into your hand but keeps your turn (you still play a card)', () => {
     let r = startGame(baseRoom(), 'p1');
     r.turnOrder = ['p1', 'p2'];
     r.currentTurn = 0;
@@ -206,7 +206,7 @@ describe('stealCard', () => {
     expect(r.hands['p2'].find((c) => c.id === 'b')).toBeUndefined(); // they lost it
     expect(r.hands['p2'].length).toBe(2); // victim is down a card
     expect(r.hands['p1'].find((c) => c.id === 's')).toBeUndefined(); // steal card spent
-    expect(r.turnOrder[r.currentTurn]).toBe('p2');
+    expect(r.turnOrder[r.currentTurn]).toBe('p1'); // free action — turn stays
   });
 
   it('cannot steal from a teammate (card not consumed)', () => {
@@ -254,7 +254,7 @@ describe('rerollCard', () => {
   const reroll = () => ({ id: 'rr', kind: 'reroll' as const, target: null, equation: null, color: null });
   const num = (id: string, target: number) => ({ id, kind: 'number' as const, target, equation: `${target}+0`, color: '#000' });
 
-  it('swaps the reroll card and one chosen card for two fresh ones; keeps the rest; passes the turn', () => {
+  it('swaps the reroll card and one chosen card for two fresh ones; keeps the rest and your turn', () => {
     let r = startGame(baseRoom(), 'p1');
     r.turnOrder = ['p1', 'p2'];
     r.currentTurn = 0;
@@ -264,7 +264,7 @@ describe('rerollCard', () => {
     expect(r.hands['p1'].find((c) => c.id === 'rr')).toBeUndefined(); // reroll consumed
     expect(r.hands['p1'].find((c) => c.id === 'n2')).toBeDefined(); // untouched card stays
     expect(r.hands['p1'].length).toBe(size); // removed 2, drew 2 → same size
-    expect(r.turnOrder[r.currentTurn]).toBe('p2');
+    expect(r.turnOrder[r.currentTurn]).toBe('p1'); // free action — turn stays
   });
 
   it('returns the chosen card to the deck (so the board stays fillable)', () => {

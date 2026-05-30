@@ -17,9 +17,17 @@ interface LobbyProps {
   onStart: () => void;
   onUpdateSettings: (patch: Partial<Settings>) => void;
   onExit: () => void;
+  onEditCharacter: () => void;
 }
 
-export default function Lobby({ view, onAssign, onStart, onUpdateSettings, onExit }: LobbyProps) {
+export default function Lobby({
+  view,
+  onAssign,
+  onStart,
+  onUpdateSettings,
+  onExit,
+  onEditCharacter,
+}: LobbyProps) {
   const [copied, setCopied] = useState(false);
   const [qr, setQr] = useState<string>('');
   const [showSettings, setShowSettings] = useState(false);
@@ -71,6 +79,13 @@ export default function Lobby({ view, onAssign, onStart, onUpdateSettings, onExi
   return (
     <div className="page">
       <div className="lobby-top-bar">
+        <button
+          className="ghost-btn"
+          style={{ width: 'auto', padding: '6px 12px' }}
+          onClick={onEditCharacter}
+        >
+          ✏️ Character
+        </button>
         {isHost && (
           <button
             className="ghost-btn"

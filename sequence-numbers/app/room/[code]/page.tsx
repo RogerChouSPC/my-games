@@ -44,6 +44,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
   const [joined, setJoined] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [confirmEnd, setConfirmEnd] = useState(false);
+  const [editing, setEditing] = useState(false); // editing your character in the lobby
   const [stealTarget, setStealTarget] = useState<string | null>(null); // opponent chosen for Steal
   const [shieldPicks, setShieldPicks] = useState<number[]>([]); // chips chosen for a Shield (up to 2)
 
@@ -112,13 +113,29 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
   // ---- Lobby ----
   if (view.phase === 'lobby') {
     return (
-      <Lobby
-        view={view}
-        onAssign={(team: TeamColor) => emit('assign-team', { code, playerId: myId, team })}
-        onStart={() => emit('start-game', { code })}
-        onUpdateSettings={(patch) => emit('update-settings', { code, settings: patch })}
-        onExit={() => router.push('/')}
-      />
+      <>
+        {editing && (
+          <CharacterPicker
+            initialName={profile?.name}
+            initialIcon={profile?.icon}
+            onConfirm={(name, ic) => {
+              saveProfile(name, ic);
+              setProfile({ name, icon: ic });
+              // Re-join with the new profile so the server updates everyone's view.
+              emit('join-room', { code, player: { id: myId, name, icon: ic } });
+              setEditing(false);
+            }}
+          />
+        )}
+        <Lobby
+          view={view}
+          onAssign={(team: TeamColor) => emit('assign-team', { code, playerId: myId, team })}
+          onStart={() => emit('start-game', { code })}
+          onUpdateSettings={(patch) => emit('update-settings', { code, settings: patch })}
+          onExit={() => router.push('/')}
+          onEditCharacter={() => setEditing(true)}
+        />
+      </>
     );
   }
 

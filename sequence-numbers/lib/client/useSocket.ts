@@ -46,12 +46,22 @@ export interface SuperEvent {
   key: number;
 }
 
+export type CardEffectKind = 'freeze' | 'steal' | 'shield' | 'bomb' | 'reroll';
+
+export interface CardEffectEvent {
+  kind: CardEffectKind;
+  byName: string; // who played the card
+  targetName?: string; // affected player (freeze/steal), when relevant
+  key: number;
+}
+
 export function useSocket() {
   const ref = useRef<Socket | null>(null);
   const [view, setView] = useState<ClientView | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reaction, setReaction] = useState<ReactionEvent | null>(null);
   const [superEvent, setSuperEvent] = useState<SuperEvent | null>(null);
+  const [cardEffect, setCardEffect] = useState<CardEffectEvent | null>(null);
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
@@ -66,6 +76,9 @@ export function useSocket() {
     );
     s.on('super-sequence', (e: { gif: string | null }) =>
       setSuperEvent({ gif: e.gif, key: Date.now() + Math.random() })
+    );
+    s.on('card-effect', (e: { kind: CardEffectKind; byName: string; targetName?: string }) =>
+      setCardEffect({ ...e, key: Date.now() + Math.random() })
     );
     return () => {
       s.close();
@@ -85,6 +98,7 @@ export function useSocket() {
     error,
     reaction,
     superEvent,
+    cardEffect,
     connected,
     emit,
     onJoined,

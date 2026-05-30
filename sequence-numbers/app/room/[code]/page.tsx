@@ -19,6 +19,7 @@ import BetweenGames from '@/components/BetweenGames';
 import FinalWinner from '@/components/FinalWinner';
 import FloatingReactions from '@/components/FloatingReactions';
 import SuperSequence from '@/components/SuperSequence';
+import CardEffect from '@/components/CardEffect';
 
 const TEAM_HEX: Record<string, string> = {
   red: '#ef5350',
@@ -36,7 +37,7 @@ const TEAM_EMOJI: Record<string, string> = {
 export default function RoomPage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = use(params);
   const router = useRouter();
-  const { view, error, reaction, superEvent, connected, emit } = useSocket();
+  const { view, error, reaction, superEvent, cardEffect, connected, emit } = useSocket();
 
   const [profile, setProfile] = useState<{ name: string; icon: number } | null>(null);
   const [joined, setJoined] = useState(false);
@@ -221,6 +222,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
       {endConfirm}
       <FloatingReactions reaction={reaction} />
       <SuperSequence event={superEvent} />
+      <CardEffect event={cardEffect} />
 
       {badgeTeam && (
         <div className="team-badge">

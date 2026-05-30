@@ -85,8 +85,8 @@ export default function CreateRoom() {
       </button>
 
       <div className="logo">
-        <div className="logo-icon">🎯</div>
-        <div className="logo-title" style={{ fontSize: 20 }}>
+        <div className="logo-icon">⚔️</div>
+        <div className="logo-title" style={{ fontSize: 22 }}>
           Create Room
         </div>
       </div>

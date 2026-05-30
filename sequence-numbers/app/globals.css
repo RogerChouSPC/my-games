@@ -1,21 +1,39 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #0a0a15;
-  --panel: #1a1a2e;
-  --panel-2: #12122a;
-  --line: #2a2a45;
-  --accent: #7c4dff;
-  --accent-2: #e040fb;
+  --bg: #0a0c16;
+  --panel: #14172a;
+  --panel-2: #10122440;
+  --line: #2a2e48;
+  --accent: #ffc024;
+  --accent-2: #ff8f00;
+  --red: #ef5350;
+  --blue: #42a5f5;
   --text: #ffffff;
-  --muted: #888;
+  --muted: #8a90b0;
 }
 
 html, body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: 'Rajdhani', 'Segoe UI', system-ui, sans-serif;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Battle-arena atmosphere on every page: red vs blue team glow + tactical grid. */
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: -2; pointer-events: none;
+  background:
+    radial-gradient(circle at 13% 6%, rgba(239,83,80,.18), transparent 42%),
+    radial-gradient(circle at 87% 95%, rgba(66,165,245,.18), transparent 42%),
+    radial-gradient(circle at 50% 45%, rgba(255,192,36,.05), transparent 60%);
+}
+body::after {
+  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background-image: linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px);
+  background-size: 36px 36px;
+  -webkit-mask-image: radial-gradient(circle at 50% 38%, #000 0%, transparent 82%);
+  mask-image: radial-gradient(circle at 50% 38%, #000 0%, transparent 82%);
 }
 
 button { font-family: inherit; cursor: pointer; }
@@ -43,13 +61,15 @@ button { font-family: inherit; cursor: pointer; }
 .logo-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
 
 .card-panel {
-  background: var(--panel);
-  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(26,30,52,.92), rgba(15,17,30,.94));
+  border-radius: 18px;
   padding: 24px;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 18px 45px rgba(0,0,0,.5);
+  backdrop-filter: blur(8px);
   width: 100%;
 }
-.card-title { font-size: 15px; font-weight: 700; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+.card-title { font-family: 'Russo One', system-ui, sans-serif; font-size: 17px; font-weight: 400; letter-spacing: .5px; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
 
 .field { margin-bottom: 18px; }
 .field-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
@@ -65,15 +85,15 @@ button { font-family: inherit; cursor: pointer; }
   padding: 8px 16px; border-radius: 30px; border: 1.5px solid var(--line);
   background: var(--bg); color: var(--muted); font-size: 13px; font-weight: 600;
 }
-.pill.active { border-color: var(--accent); background: #2a1a5e; color: #fff; }
+.pill.active { border-color: var(--accent); background: rgba(255,192,36,.14); color: #fff; }
 
 .opt-cards { display: flex; gap: 10px; }
 .opt-card {
   flex: 1; background: var(--bg); border: 2px solid var(--line); border-radius: 12px;
   padding: 14px 10px; text-align: center;
 }
-.opt-card.active { border-color: var(--accent); background: #1a0a3e; }
-.opt-card .size { font-size: 20px; font-weight: 800; }
+.opt-card.active { border-color: var(--accent); background: rgba(255,192,36,.1); box-shadow: 0 0 14px rgba(255,192,36,.2); }
+.opt-card .size { font-family: 'Russo One', system-ui, sans-serif; font-size: 19px; font-weight: 400; }
 .opt-card .rule { font-size: 10px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
 
 /* Big number selector buttons (with optional card-fan icon) */
@@ -82,8 +102,8 @@ button { font-family: inherit; cursor: pointer; }
   flex: 1; padding: 16px 4px 14px; border-radius: 12px;
   border: 2px solid #1e1e35; background: #12122a; text-align: center;
 }
-.num-btn.active { border-color: var(--accent); background: #1e1040; }
-.num-btn .n { font-size: 24px; font-weight: 800; line-height: 1; }
+.num-btn.active { border-color: var(--accent); background: rgba(255,192,36,.1); box-shadow: 0 0 12px rgba(255,192,36,.18); }
+.num-btn .n { font-family: 'Russo One', system-ui, sans-serif; font-size: 23px; font-weight: 400; line-height: 1; }
 .num-btn .lbl { font-size: 11px; color: #555; margin-top: 6px; }
 .num-btn.active .lbl { color: #888; }
 
@@ -107,10 +127,13 @@ button { font-family: inherit; cursor: pointer; }
 .divider { height: 1px; background: var(--line); margin: 20px 0; }
 
 .primary-btn {
-  width: 100%; padding: 15px; border: none; border-radius: 12px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: #fff; font-size: 15px; font-weight: 800; letter-spacing: 0.5px;
+  width: 100%; padding: 15px; border: none; border-radius: 13px;
+  background: linear-gradient(135deg, #ffe082 0%, #ffb300 45%, #ff8f00 100%);
+  color: #2a1500; font-family: 'Russo One', system-ui, sans-serif; font-size: 15px; font-weight: 400; letter-spacing: 0.5px;
+  box-shadow: 0 7px 18px rgba(255,143,0,.32), inset 0 1px 0 rgba(255,255,255,.45);
+  transition: transform .12s, box-shadow .12s;
 }
+.primary-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(255,143,0,.45), inset 0 1px 0 rgba(255,255,255,.5); }
 .primary-btn:disabled { opacity: 0.4; }
 .ghost-btn { width: 100%; padding: 13px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--bg); color: #fff; font-size: 14px; font-weight: 700; }
 .link { color: var(--accent); font-weight: 600; cursor: pointer; background: none; border: none; font-size: 12px; }

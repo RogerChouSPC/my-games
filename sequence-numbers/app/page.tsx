@@ -35,8 +35,6 @@ export default function Home() {
         />
       )}
 
-      <div className="home-glow" aria-hidden />
-
       <div className="home-hero">
         <div className="nw-crest">⚔️</div>
         <h1 className="nw-title">

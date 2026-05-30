@@ -104,7 +104,7 @@ export default function Lobby({
         <SettingsModal view={view} onSave={onUpdateSettings} onClose={() => setShowSettings(false)} />
       )}
 
-      <div className="card-title">🎯 Waiting Room</div>
+      <div className="card-title">⚔️ Waiting Room</div>
 
       {myTeam && (
         <div className="my-team-line" style={{ color: TEAM_HEX[myTeam] }}>

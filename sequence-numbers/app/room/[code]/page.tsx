@@ -473,7 +473,7 @@ function EndConfirm({ onCancel, onConfirm }: { onCancel: () => void; onConfirm: 
           </button>
           <button
             className="primary-btn"
-            style={{ background: 'linear-gradient(135deg, #ef5350, #b71c1c)' }}
+            style={{ background: 'linear-gradient(135deg, #ef5350, #b71c1c)', color: '#fff' }}
             onClick={onConfirm}
           >
             End Game

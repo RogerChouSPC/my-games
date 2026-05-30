@@ -53,7 +53,8 @@ export interface Cell {
   owner: CellOwner; // which team's chip sits here
   bumpy: boolean; // showing bumpy (near-sequence) side
   inSequence: boolean; // locked into a completed sequence
-  shielded?: boolean; // protected from Minus/Steal for the rest of the game
+  superSequence?: boolean; // part of a full-length line (scores 2) → gold star
+  shielded?: boolean; // protected from Minus/Bomb for the rest of the game
 }
 
 export interface TeamState {

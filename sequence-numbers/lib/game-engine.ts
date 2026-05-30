@@ -1,7 +1,7 @@
 import type { RoomState, Card, TeamColor, ServerRoom } from '@/types/game';
 import { buildBoard, sequenceLengthFor } from './board-layout';
 import { buildDeck, shuffle } from './deck';
-import { findCompletedSequences, sequenceCells, findBumpyCells } from './sequences';
+import { findCompletedSequences, findBumpyCells } from './sequences';
 
 function teamOf(room: RoomState, playerId: string): TeamColor {
   const p = room.players.find((p) => p.id === playerId);
@@ -64,6 +64,7 @@ function recomputeBoardFlags(room: RoomState): RoomState {
   const freeIdx = new Set(room.board.filter((c) => c.value === 'FREE').map((c) => c.index));
 
   const inSeq = new Set<number>();
+  const superSeq = new Set<number>(); // cells in a full-length line (scores 2) → gold star
   const bumpyAll = new Set<number>();
   const seqCount: Record<string, number> = {};
   let superCount = 0;
@@ -72,13 +73,19 @@ function recomputeBoardFlags(room: RoomState): RoomState {
     const runs = findCompletedSequences(owners, freeIdx, size, need, t);
     seqCount[t] = runs.reduce((n, run) => n + (run.length >= size ? 2 : 1), 0);
     superCount += runs.filter((run) => run.length >= size).length;
-    sequenceCells(owners, freeIdx, size, need, t).forEach((i) => inSeq.add(i));
+    for (const run of runs) {
+      for (const i of run) {
+        inSeq.add(i);
+        if (run.length >= size) superSeq.add(i);
+      }
+    }
     findBumpyCells(owners, freeIdx, size, need, t).forEach((i) => bumpyAll.add(i));
   }
 
   const board = room.board.map((c) => ({
     ...c,
     inSequence: inSeq.has(c.index),
+    superSequence: superSeq.has(c.index),
     bumpy: bumpyAll.has(c.index) && !inSeq.has(c.index),
   }));
   const teams = room.teams.map((t) => ({ ...t, sequencesThisGame: seqCount[t.color] ?? 0 }));

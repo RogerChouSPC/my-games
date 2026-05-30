@@ -230,6 +230,7 @@ button { font-family: inherit; cursor: pointer; }
 /* Chips (round, blank / bumpy / sequence) */
 .chip { position: absolute; inset: 8%; border-radius: 50%; z-index: 2; transition: all .4s ease; display: flex; align-items: center; justify-content: center; }
 .chip-star { font-size: clamp(7px, 2.4vw, 14px); color: #fff; line-height: 1; text-shadow: 0 0 3px rgba(0,0,0,.7), 0 0 5px #ffd700; pointer-events: none; }
+.chip-star.super { color: #ffd700; text-shadow: 0 0 3px #000, 0 0 6px #ffd700, 0 0 10px #ffb300; }
 .chip-red { background: radial-gradient(circle at 40% 30%, #ff8a80 0%, #e53935 45%, #7f0000 100%); filter: drop-shadow(0 0 2.5px #fff) drop-shadow(0 0 1px #fff) drop-shadow(0 3px 4px rgba(0,0,0,.7)); }
 .chip-blue { background: radial-gradient(circle at 40% 30%, #80d8ff 0%, #1e88e5 45%, #0d2b6e 100%); filter: drop-shadow(0 0 2.5px #fff) drop-shadow(0 0 1px #fff) drop-shadow(0 3px 4px rgba(0,0,0,.7)); }
 .chip-green { background: radial-gradient(circle at 40% 30%, #ccff90 0%, #388e3c 45%, #003300 100%); filter: drop-shadow(0 0 2.5px #fff) drop-shadow(0 0 1px #fff) drop-shadow(0 3px 4px rgba(0,0,0,.7)); }

@@ -47,7 +47,7 @@ export default function Lobby({
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    QRCode.toDataURL(window.location.href, { width: 220, margin: 1 })
+    QRCode.toDataURL(window.location.href, { width: 360, margin: 1 })
       .then(setQr)
       .catch(() => setQr(''));
   }, []);
@@ -69,12 +69,18 @@ export default function Lobby({
     yellow: '#ffca28',
   };
 
-  const modeLabel =
-    mode === 'teams'
-      ? `${view.settings.teamCount} teams`
-      : mode === 'solo'
-        ? `solo · ${view.settings.teamCount} players`
-        : `self-test · ${view.settings.teamCount} sides`;
+  const modeNoun = mode === 'teams' ? 'Teams' : mode === 'solo' ? 'Players' : 'Sides';
+  const specialCards = (
+    [
+      ['➕', view.settings.plusCards],
+      ['➖', view.settings.minusCards],
+      ['🧊', view.settings.freezeCards],
+      ['🦹', view.settings.stealCards],
+      ['🛡️', view.settings.shieldCards],
+      ['💣', view.settings.bombCards],
+      ['🔀', view.settings.rerollCards],
+    ] as const
+  ).filter(([, n]) => n > 0);
 
   return (
     <div className="page">
@@ -130,19 +136,51 @@ export default function Lobby({
       {mode !== 'selftest' && qr && (
         <div className="qr-card">
           <img src={qr} alt="Scan to join" className="qr-img" />
-          <div className="qr-text">
-            <div style={{ fontWeight: 700, marginBottom: 4 }}>📷 Scan to join</div>
-            <div style={{ fontSize: 11, color: 'var(--muted)' }}>
-              Point a phone camera here to open the room directly — or share the code{' '}
-              <strong style={{ color: '#fff' }}>{view.code}</strong>.
-            </div>
+          <div className="qr-title">📷 Scan to join</div>
+          <div className="qr-sub">
+            Point a phone camera here — or share code <strong>{view.code}</strong>
           </div>
         </div>
       )}
 
-      <div className="settings-badge" style={{ marginBottom: 14, display: 'block' }}>
-        {view.settings.boardSize}×{view.settings.boardSize} board · {modeLabel} ·{' '}
-        {view.settings.sequencesToWin} Line Wins · {view.settings.cardsPerPlayer} cards/player
+      <div className="game-settings">
+        <div className="gs-grid">
+          <div className="gs-stat">
+            <span className="gs-val">
+              {view.settings.boardSize}×{view.settings.boardSize}
+            </span>
+            <span className="gs-lbl">Board</span>
+          </div>
+          <div className="gs-stat">
+            <span className="gs-val">{view.settings.sequencesToWin}</span>
+            <span className="gs-lbl">Line Wins</span>
+          </div>
+          <div className="gs-stat">
+            <span className="gs-val">{view.settings.cardsPerPlayer}</span>
+            <span className="gs-lbl">Cards / Hand</span>
+          </div>
+          <div className="gs-stat">
+            <span className="gs-val">{view.settings.teamCount}</span>
+            <span className="gs-lbl">{modeNoun}</span>
+          </div>
+          <div className="gs-stat">
+            <span className="gs-val">
+              {view.settings.timerEnabled ? `${view.settings.timerSeconds}s` : 'Off'}
+            </span>
+            <span className="gs-lbl">Timer</span>
+          </div>
+        </div>
+        {specialCards.length > 0 && (
+          <div className="gs-cards">
+            <span className="gs-cards-lbl">Special cards</span>
+            {specialCards.map(([ic, n]) => (
+              <span key={ic} className="gs-card-item">
+                {ic}
+                <span className="gs-card-n">×{n}</span>
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ---- Self-test ---- */}

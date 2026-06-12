@@ -716,6 +716,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
         revealNumbers={selectedCard?.kind === 'minus' || selectedCard?.kind === 'bomb'}
         allowAnyPick={numberCardHidden && myTurn && !frozen}
         wrongPick={wrongPick}
+        keepBrightTeam={selectedCard?.kind === 'plus' ? actingTeam : null}
         onPick={handlePick}
       />
       <EmojiPanel onReact={(emoji) => emit('reaction', { code, emoji })} />

@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import type { Cell, BoardSize, BoardTheme } from '@/types/game';
+import type { Cell, BoardSize, BoardTheme, TeamColor } from '@/types/game';
 import { numberOutline } from '@/lib/board-layout';
 import Chip from './Chip';
 
@@ -17,6 +17,7 @@ interface BoardProps {
   revealNumbers?: boolean;
   allowAnyPick?: boolean; // hard mode: clicks allowed on every cell (page validates)
   wrongPick?: number | null; // cell index currently shaking from a wrong hard-mode tap
+  keepBrightTeam?: TeamColor | null; // while aiming (e.g. Airdrop): this team's pieces stay undimmed
   onPick: (index: number) => void;
 }
 
@@ -33,6 +34,7 @@ export default function Board({
   revealNumbers,
   allowAnyPick,
   wrongPick,
+  keepBrightTeam,
   onPick,
 }: BoardProps) {
   // Shake the board briefly whenever shakeKey changes (a bomb just went off).
@@ -107,6 +109,7 @@ export default function Board({
             if (removalCells?.has(cell.index)) cellCls.push('removed');
             if (dangerPreview?.has(cell.index)) cellCls.push('danger');
             if (wrongPick === cell.index) cellCls.push('wrongpick');
+            if (keepBrightTeam && cell.owner === keepBrightTeam) cellCls.push('keep-bright');
             const circleCls = ['circle'];
             if (cell.value === 'FREE') circleCls.push('freebase');
             else circleCls.push(numberOutline(cell.color) === 'dark' ? 'num-dark' : 'num-light');

@@ -417,6 +417,8 @@ button { font-family: inherit; cursor: pointer; }
 }
 /* Dim the non-selectable cells while a card is selected, so choices pop */
 .board-grid.has-targets .cell:not(.targetable) { opacity: 0.45; }
+/* While aiming an Airdrop, keep YOUR pieces fully visible (enemies stay dimmed). */
+.board-grid.has-targets .cell.keep-bright { opacity: 1; }
 /* Latest placed piece: medium black ring (with a thin white edge so it reads on any team colour). */
 .cell.lastmove .unit .unit-ring { box-shadow: 0 0 0 2.5px #111, 0 0 0 4.5px rgba(255,255,255,.85); }
 /* Square(s) a Minus/Bomb just cleared: red corner brackets. */

@@ -15,31 +15,38 @@ interface HandCardsProps {
   onDiscard: (cardId: string) => void;
 }
 
-// Equation displayed like written arithmetic: the two numbers stacked in big
-// digits, the operator on the right, and an answer line underneath.
-function EquationStack({ equation }: { equation: string | null }) {
+// Flash-card arithmetic (matches the physical reference deck): both numbers
+// stacked in big colored digits, the sign left of the bottom number, and an
+// answer line underneath — all in the card's color.
+function EquationStack({ equation, color }: { equation: string | null; color: string }) {
   const parts = (equation ?? '').split(' ');
   if (parts.length !== 3) return <div className="card-eq">{equation}</div>;
   const [a, op, b] = parts;
   const sign = op === '-' ? '−' : op; // true minus sign reads better than a hyphen
   return (
-    <div className="card-eq-stack">
-      <div className="eq-nums">
-        <span>{a}</span>
+    <div className="card-eq-stack" style={{ color, borderColor: color }}>
+      <span className="eq-row">{a}</span>
+      <span className="eq-row">
+        {op === '÷' ? (
+          // Hand-drawn divide glyph: the font's ÷ merges into a + at bold sizes.
+          <span className="eq-div" role="img" aria-label="divided by">
+            <i />
+            <b />
+            <i />
+          </span>
+        ) : (
+          <span className="eq-sign">{sign}</span>
+        )}
         <span>{b}</span>
-      </div>
-      {op === '÷' ? (
-        // Hand-drawn divide glyph: the font's ÷ merges into a + at bold sizes.
-        <span className="eq-op eq-div" role="img" aria-label="divided by">
-          <i />
-          <b />
-          <i />
-        </span>
-      ) : (
-        <span className="eq-op">{sign}</span>
-      )}
+      </span>
     </div>
   );
+}
+
+// Flash-card display color: the yellow bucket is too pale on a white card.
+function cardInk(color: string | null): string {
+  if (!color) return '#333';
+  return color === '#fdd835' ? '#f9a825' : color;
 }
 
 // A number card is dead if every board cell with its target is already owned.
@@ -139,6 +146,8 @@ export default function HandCards({
             );
           }
 
+          const ink = cardInk(card.color);
+          const parts = (card.equation ?? '').split(' ');
           return (
             <div
               key={card.id}
@@ -157,14 +166,17 @@ export default function HandCards({
                   swap
                 </span>
               )}
-              <div className="card-header" style={{ background: card.color ?? '#333' }}>
-                <span style={{ color: '#fff', fontSize: 10 }}>●</span>
-              </div>
+              {parts.length === 3 && (
+                <span className="corner-badge" style={{ background: ink }}>
+                  <span>{parts[0]}</span>
+                  <span>
+                    {parts[1] === '-' ? '−' : parts[1]}
+                    {parts[2]}
+                  </span>
+                </span>
+              )}
               <div className="card-body">
-                <EquationStack equation={card.equation} />
-              </div>
-              <div className="card-footer">
-                <span style={{ color: card.color ?? '#333', fontSize: 10 }}>●</span>
+                <EquationStack equation={card.equation} color={ink} />
               </div>
             </div>
           );

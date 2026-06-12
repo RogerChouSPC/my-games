@@ -514,7 +514,7 @@ button { font-family: inherit; cursor: pointer; }
 .my-team-line .pieces { display: flex; gap: 4px; }
 .my-team-line .mini-chip { width: 18px; height: 18px; }
 .hand-cards { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
-.hand-card { background: #fff; border-radius: 10px; text-align: center; box-shadow: 2px 4px 12px rgba(0,0,0,.5); transition: transform .15s; min-width: 54px; border: 2px solid transparent; overflow: hidden; display: flex; flex-direction: column; position: relative; }
+.hand-card { background: #fff; border-radius: 10px; text-align: center; box-shadow: 2px 4px 12px rgba(0,0,0,.5); transition: transform .15s; width: 66px; min-width: 66px; height: 96px; border: 2px solid transparent; overflow: hidden; display: flex; flex-direction: column; position: relative; }
 .hand-card:hover { transform: translateY(-8px); }
 .hand-card.active { border-color: #ffd700; transform: translateY(-10px); box-shadow: 0 0 16px #ffd70099; }
 .hand-card.dead { opacity: 0.55; }
@@ -522,15 +522,17 @@ button { font-family: inherit; cursor: pointer; }
 .card-header .clbl { font-size: 8px; color: rgba(255,255,255,.7); }
 .card-body { padding: 6px; flex: 1; display: flex; align-items: center; justify-content: center; }
 .card-eq { font-size: 16px; font-weight: 900; color: #111; white-space: nowrap; }
-/* Stacked written-arithmetic layout: big digits on two rows, sign on the right,
-   answer line underneath. */
-.card-eq-stack { display: flex; align-items: center; gap: 5px; border-bottom: 3px solid #111; padding: 1px 5px 3px; }
-.card-eq-stack .eq-nums { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.04; font-size: 21px; font-weight: 900; color: #111; }
-.card-eq-stack .eq-op { font-size: 30px; font-weight: 900; color: #111; line-height: 1; }
+/* Flash-card arithmetic (like the physical reference deck): colored stacked digits,
+   sign left of the bottom number, answer line underneath. */
+.card-eq-stack { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.04; font-size: 22px; font-weight: 900; border-bottom: 3.5px solid currentColor; padding: 0 3px 3px; }
+.card-eq-stack .eq-row { display: flex; align-items: center; gap: 2px; }
+.card-eq-stack .eq-sign { font-size: 22px; font-weight: 900; line-height: 1; }
 /* Custom divide glyph — dots clearly separated from the bar (font ÷ looks like + when bold). */
-.eq-op.eq-div { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; width: 22px; }
-.eq-op.eq-div i { width: 6.5px; height: 6.5px; border-radius: 50%; background: #111; }
-.eq-op.eq-div b { width: 20px; height: 4.5px; border-radius: 2.5px; background: #111; }
+.eq-div { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 3.5px; width: 16px; }
+.eq-div i { width: 4.5px; height: 4.5px; border-radius: 50%; background: currentColor; }
+.eq-div b { width: 15px; height: 3.5px; border-radius: 2px; background: currentColor; }
+/* Mini equation wedge in the card's top-left corner, like the reference deck. */
+.corner-badge { position: absolute; top: 0; left: 0; padding: 2px 7px 4px 4px; border-radius: 0 0 18px 0; display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; font-size: 8px; font-weight: 800; color: #fff; z-index: 2; }
 .card-footer { padding: 2px 6px 4px; display: flex; justify-content: flex-end; }
 .card-corner-tl { position: absolute; top: 4px; left: 5px; font-size: 10px; font-weight: 900; color: #fff; line-height: 1; text-align: center; }
 .card-corner-br { position: absolute; bottom: 4px; right: 5px; font-size: 10px; font-weight: 900; color: #fff; transform: rotate(180deg); line-height: 1; text-align: center; }

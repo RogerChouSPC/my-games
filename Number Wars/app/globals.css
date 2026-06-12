@@ -446,7 +446,6 @@ button { font-family: inherit; cursor: pointer; }
 }
 .circle.num-light { text-shadow: -1.5px -1.5px 0 #fff, 1.5px -1.5px 0 #fff, -1.5px 1.5px 0 #fff, 1.5px 1.5px 0 #fff, 0 0 6px rgba(0,0,0,.5); }
 .circle.num-dark { text-shadow: -1.5px -1.5px 0 #000, 1.5px -1.5px 0 #000, -1.5px 1.5px 0 #000, 1.5px 1.5px 0 #000; }
-.circle.rot { transform: rotate(180deg); }
 /* FREE BASE corner medallion (black + gold, like the original artwork). */
 .circle.freebase {
   inset: 9%;
@@ -524,15 +523,15 @@ button { font-family: inherit; cursor: pointer; }
 .card-eq { font-size: 16px; font-weight: 900; color: #111; white-space: nowrap; }
 /* Flash-card arithmetic (like the physical reference deck): colored stacked digits,
    sign left of the bottom number, answer line underneath. */
-.card-eq-stack { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.04; font-size: 22px; font-weight: 900; border-bottom: 3.5px solid currentColor; padding: 0 3px 3px; }
+.card-eq-stack { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.04; font-size: 27px; font-weight: 900; border-bottom: 4px solid currentColor; padding: 0 3px 3px; }
 .card-eq-stack .eq-row { display: flex; align-items: center; gap: 2px; }
-.card-eq-stack .eq-sign { font-size: 22px; font-weight: 900; line-height: 1; }
+.card-eq-stack .eq-sign { font-size: 27px; font-weight: 900; line-height: 1; }
 /* Custom divide glyph — dots clearly separated from the bar (font ÷ looks like + when bold). */
-.eq-div { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 3.5px; width: 16px; }
-.eq-div i { width: 4.5px; height: 4.5px; border-radius: 50%; background: currentColor; }
-.eq-div b { width: 15px; height: 3.5px; border-radius: 2px; background: currentColor; }
-/* Mini equation wedge in the card's top-left corner, like the reference deck. */
-.corner-badge { position: absolute; top: 0; left: 0; padding: 2px 7px 4px 4px; border-radius: 0 0 18px 0; display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; font-size: 8px; font-weight: 800; color: #fff; z-index: 2; }
+.eq-div { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 19px; }
+.eq-div i { width: 5.5px; height: 5.5px; border-radius: 50%; background: currentColor; }
+.eq-div b { width: 18px; height: 4px; border-radius: 2px; background: currentColor; }
+/* Plain colored wedge in the card's top-left corner, like the reference deck. */
+.corner-badge { position: absolute; top: 0; left: 0; width: 18px; height: 18px; border-radius: 0 0 20px 0; z-index: 2; }
 .card-footer { padding: 2px 6px 4px; display: flex; justify-content: flex-end; }
 .card-corner-tl { position: absolute; top: 4px; left: 5px; font-size: 10px; font-weight: 900; color: #fff; line-height: 1; text-align: center; }
 .card-corner-br { position: absolute; bottom: 4px; right: 5px; font-size: 10px; font-weight: 900; color: #fff; transform: rotate(180deg); line-height: 1; text-align: center; }

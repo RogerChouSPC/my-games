@@ -100,8 +100,6 @@ export default function Board({
           }}
         >
           {cells.map((cell) => {
-            const row = Math.floor(cell.index / size);
-            const topHalf = row < size / 2; // top half rendered upside-down like the physical board
             const isTarget = targetable.has(cell.index);
             const cellCls = ['cell'];
             if (isTarget) cellCls.push('targetable');
@@ -113,7 +111,6 @@ export default function Board({
             const circleCls = ['circle'];
             if (cell.value === 'FREE') circleCls.push('freebase');
             else circleCls.push(numberOutline(cell.color) === 'dark' ? 'num-dark' : 'num-light');
-            if (topHalf && cell.value !== 'FREE') circleCls.push('rot');
             return (
               <div
                 key={cell.index}
@@ -147,7 +144,7 @@ export default function Board({
                 )}
                 {removalCells?.has(cell.index) && <span className="chip-pop">💥</span>}
                 {revealNumbers && cell.owner && cell.value !== 'FREE' && (
-                  <span className={`chip-reveal-num${topHalf ? ' rot' : ''}`}>{cell.value}</span>
+                  <span className="chip-reveal-num">{cell.value}</span>
                 )}
               </div>
             );

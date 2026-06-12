@@ -7,6 +7,9 @@ const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, M
 export function applySettingsUpdate(current: Settings, patch: Partial<Settings>): Settings {
   const next = { ...current };
   if (patch.boardSize === 8 || patch.boardSize === 9) next.boardSize = patch.boardSize as BoardSize;
+  if (patch.boardTheme === 'desert' || patch.boardTheme === 'ruins' || patch.boardTheme === 'city')
+    next.boardTheme = patch.boardTheme;
+  if (typeof patch.showAnswerLocations === 'boolean') next.showAnswerLocations = patch.showAnswerLocations;
   if (typeof patch.randomTeams === 'boolean') next.randomTeams = patch.randomTeams;
   if (typeof patch.sequencesToWin === 'number') next.sequencesToWin = clamp(patch.sequencesToWin, 1, 4);
   if (typeof patch.cardsPerPlayer === 'number') next.cardsPerPlayer = clamp(patch.cardsPerPlayer, 2, 5);

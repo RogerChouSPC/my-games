@@ -7,9 +7,13 @@ export type Phase = 'lobby' | 'playing' | 'between' | 'final';
 // selftest = a single person controls every side (hotseat, for testing)
 export type GameMode = 'teams' | 'solo' | 'selftest';
 
+export type BoardTheme = 'desert' | 'ruins' | 'city';
+
 export interface Settings {
   mode: GameMode;
   boardSize: BoardSize;
+  boardTheme: BoardTheme; // which battlefield artwork the board uses
+  showAnswerLocations: boolean; // false = hard mode: number cards don't highlight their cells
   teamCount: 2 | 3 | 4; // teams: # teams · solo: # players · selftest: # sides
   randomTeams: boolean; // teams mode: true = sides drawn randomly (balanced) at game start
   sequencesToWin: number; // 1..4

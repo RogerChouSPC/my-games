@@ -5,6 +5,8 @@ import type { Settings } from '@/types/game';
 const base: Settings = {
   mode: 'teams',
   boardSize: 8,
+  boardTheme: 'desert',
+  showAnswerLocations: true,
   teamCount: 2,
   randomTeams: false,
   sequencesToWin: 2,
@@ -30,6 +32,14 @@ describe('applySettingsUpdate', () => {
   it('clamps sequencesToWin to 1..4 and cardsPerPlayer to 2..5', () => {
     expect(applySettingsUpdate(base, { sequencesToWin: 99 }).sequencesToWin).toBe(4);
     expect(applySettingsUpdate(base, { cardsPerPlayer: 1 }).cardsPerPlayer).toBe(2);
+  });
+  it('accepts boardTheme and showAnswerLocations', () => {
+    const next = applySettingsUpdate(base, { boardTheme: 'city', showAnswerLocations: false });
+    expect(next.boardTheme).toBe('city');
+    expect(next.showAnswerLocations).toBe(false);
+  });
+  it('ignores an invalid boardTheme', () => {
+    expect(applySettingsUpdate(base, { boardTheme: 'moon' as never }).boardTheme).toBe('desert');
   });
   it('ignores invalid board size and never changes mode or teamCount', () => {
     const next = applySettingsUpdate(base, { boardSize: 7 as never, mode: 'solo', teamCount: 4 });

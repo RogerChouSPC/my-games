@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import type { Settings, BoardSize, GameMode } from '@/types/game';
+import type { Settings, BoardSize, GameMode, BoardTheme } from '@/types/game';
 import { useSocket, getPlayerId, getSavedProfile, saveProfile } from '@/lib/client/useSocket';
 import CharacterPicker from '@/components/CharacterPicker';
 
@@ -14,6 +14,8 @@ export default function CreateRoom() {
 
   const [mode, setMode] = useState<GameMode>('teams');
   const [boardSize, setBoardSize] = useState<BoardSize>(8);
+  const [boardTheme, setBoardTheme] = useState<BoardTheme>('desert');
+  const [showAnswerLocations, setShowAnswerLocations] = useState(true);
   const [teamCount, setTeamCount] = useState<2 | 3 | 4>(2);
   const [sequencesToWin, setSequencesToWin] = useState(2);
   const [cardsPerPlayer, setCardsPerPlayer] = useState(3);
@@ -52,6 +54,8 @@ export default function CreateRoom() {
     const settings: Settings = {
       mode,
       boardSize,
+      boardTheme,
+      showAnswerLocations,
       teamCount,
       randomTeams: false,
       sequencesToWin,

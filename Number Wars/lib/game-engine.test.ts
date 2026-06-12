@@ -27,6 +27,8 @@ function baseRoom(): RoomState {
     settings: {
       mode: 'teams',
       boardSize: 8,
+      boardTheme: 'desert',
+      showAnswerLocations: true,
       teamCount: 2,
       randomTeams: false,
       sequencesToWin: 2,

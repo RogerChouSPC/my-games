@@ -69,10 +69,11 @@ existing mechanic. FREE BASE corners already count for every team's lines.
 - Each piece stands on its team's circle at 50% opacity (replaces the solid CSS chip).
 - Team body colors (military tones from the sheet): red `#d32f2f`, blue `#1e3a5c`,
   green `#3a5232`, purple `#6d3fa3`. Ring colors stay the bright team hexes.
-- State styling:
-  - `bumpy` (one-away): pulsing brighter ring instead of the dotted texture.
-  - `inSequence`/`superSequence`: keep the gold glow pulse; **drop the ★ star** — the
-    tank/jet itself is the signal.
+- State styling (glow-based, replaces the old dotted "bumpy" texture and ★ star):
+  - `bumpy` (one move from a Line Win): the unit icon **glows** — pulsing team-colored
+    drop-shadow on the sprite.
+  - `inSequence` (Line Win, tank): the tank icon glows **gold** (pulsing drop-shadow).
+  - `superSequence` (Full Row, jet): stronger gold glow on the jet.
   - Tier upgrade animation: quick scale-pop when a cell's tier rises; new short
     "upgrade" synth in `lib/client/sounds.ts` for squad→tank (jet keeps the existing
     'super' sound + SUPER LINE WIN overlay).
@@ -101,7 +102,13 @@ existing mechanic. FREE BASE corners already count for every team's lines.
 - Dead-card "swap" tag stays visible regardless of the toggle (prevents unexplained
   stuck states).
 
-## 6. Out of scope / unchanged
+## 6. Steal card icon
+
+- Steal's icon changes from 🦹 to **🥷 (ninja)** everywhere it appears: hand cards,
+  Reroll picker, Create Room page, lobby card list, settings modal, card-effect overlay,
+  recent-plays strip, and the How-to-play text. Label stays "STEAL".
+
+## 7. Out of scope / unchanged
 
 - Win rules, scoring, super-sequence ×2, timers, special-card logic, sounds (except the
   two new ones), reconnect, lobby flow, QR join.

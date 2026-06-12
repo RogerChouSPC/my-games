@@ -28,7 +28,16 @@ function EquationStack({ equation }: { equation: string | null }) {
         <span>{a}</span>
         <span>{b}</span>
       </div>
-      <span className="eq-op">{sign}</span>
+      {op === '÷' ? (
+        // Hand-drawn divide glyph: the font's ÷ merges into a + at bold sizes.
+        <span className="eq-op eq-div" role="img" aria-label="divided by">
+          <i />
+          <b />
+          <i />
+        </span>
+      ) : (
+        <span className="eq-op">{sign}</span>
+      )}
     </div>
   );
 }

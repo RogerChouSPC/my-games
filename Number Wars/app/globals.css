@@ -526,7 +526,11 @@ button { font-family: inherit; cursor: pointer; }
    answer line underneath. */
 .card-eq-stack { display: flex; align-items: center; gap: 5px; border-bottom: 3px solid #111; padding: 1px 5px 3px; }
 .card-eq-stack .eq-nums { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.04; font-size: 21px; font-weight: 900; color: #111; }
-.card-eq-stack .eq-op { font-size: 23px; font-weight: 900; color: #111; line-height: 1; }
+.card-eq-stack .eq-op { font-size: 30px; font-weight: 900; color: #111; line-height: 1; }
+/* Custom divide glyph — dots clearly separated from the bar (font ÷ looks like + when bold). */
+.eq-op.eq-div { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; width: 22px; }
+.eq-op.eq-div i { width: 6.5px; height: 6.5px; border-radius: 50%; background: #111; }
+.eq-op.eq-div b { width: 20px; height: 4.5px; border-radius: 2.5px; background: #111; }
 .card-footer { padding: 2px 6px 4px; display: flex; justify-content: flex-end; }
 .card-corner-tl { position: absolute; top: 4px; left: 5px; font-size: 10px; font-weight: 900; color: #fff; line-height: 1; text-align: center; }
 .card-corner-br { position: absolute; bottom: 4px; right: 5px; font-size: 10px; font-weight: 900; color: #fff; transform: rotate(180deg); line-height: 1; text-align: center; }

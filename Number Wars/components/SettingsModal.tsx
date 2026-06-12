@@ -43,6 +43,8 @@ function Stepper({
 export default function SettingsModal({ view, onSave, onClose }: Props) {
   const s = view.settings;
   const [boardSize, setBoardSize] = useState<BoardSize>(s.boardSize);
+  const [boardTheme, setBoardTheme] = useState(s.boardTheme);
+  const [showAnswerLocations, setShowAnswerLocations] = useState(s.showAnswerLocations);
   const [sequencesToWin, setSequencesToWin] = useState(s.sequencesToWin);
   const [cardsPerPlayer, setCardsPerPlayer] = useState(s.cardsPerPlayer);
   const [plusCards, setPlusCards] = useState(s.plusCards);
@@ -58,6 +60,8 @@ export default function SettingsModal({ view, onSave, onClose }: Props) {
   const save = () => {
     onSave({
       boardSize,
+      boardTheme,
+      showAnswerLocations,
       sequencesToWin,
       cardsPerPlayer,
       plusCards,
@@ -96,6 +100,26 @@ export default function SettingsModal({ view, onSave, onClose }: Props) {
           </div>
         </div>
 
+        <div className="field-label">Battlefield</div>
+        <div className="opt-cards" style={{ marginBottom: 12 }}>
+          {(
+            [
+              { key: 'desert', name: 'Desert' },
+              { key: 'ruins', name: 'Ruins' },
+              { key: 'city', name: 'City' },
+            ] as const
+          ).map((t) => (
+            <div
+              key={t.key}
+              className={`opt-card theme-card${boardTheme === t.key ? ' active' : ''}`}
+              onClick={() => setBoardTheme(t.key)}
+            >
+              <img src={`/board-themes/${t.key}.png`} alt={t.name} className="theme-thumb" />
+              <div className="rule">{t.name}</div>
+            </div>
+          ))}
+        </div>
+
         <div className="field-label">Line Wins to Win</div>
         <div className="num-btns" style={{ marginBottom: 12 }}>
           {[1, 2, 3, 4].map((n) => (
@@ -124,13 +148,31 @@ export default function SettingsModal({ view, onSave, onClose }: Props) {
           ))}
         </div>
 
-        <div className="field-label" style={{ marginBottom: 8 }}>
+        <div className="settings-row">
+          <div>
+            <div className="settings-row-label">🧮 Show Answer&apos;s Location</div>
+            <div className="settings-row-desc">
+              {showAnswerLocations ? 'Cards highlight their circles' : 'Hard mode — find the number yourself'}
+            </div>
+          </div>
+          <button
+            type="button"
+            className={`toggle${showAnswerLocations ? ' on' : ''}`}
+            onClick={() => setShowAnswerLocations((v) => !v)}
+            aria-pressed={showAnswerLocations}
+            aria-label="Toggle answer location highlighting"
+          >
+            <span className="toggle-knob" />
+          </button>
+        </div>
+
+        <div className="field-label" style={{ marginTop: 12, marginBottom: 8 }}>
           Special Cards (per deck · min 0 · max 4)
         </div>
         <Stepper label="🪂 Airdrop" desc="Drop a chip on any empty number" value={plusCards} set={setPlusCards} />
         <Stepper label="🎯 Snipe" desc="Shoot one enemy chip off the board" value={minusCards} set={setMinusCards} />
         <Stepper label="🧊 Freeze" desc="Skip an opponent's next turn" value={freezeCards} set={setFreezeCards} />
-        <Stepper label="🦹 Steal" desc="Take a hidden card from an opponent's hand" value={stealCards} set={setStealCards} />
+        <Stepper label="🥷 Steal" desc="Take a hidden card from an opponent's hand" value={stealCards} set={setStealCards} />
         <Stepper label="🛡️ Shield" desc="Secretly shield 2 of your chips (one-time)" value={shieldCards} set={setShieldCards} />
         <Stepper label="💣 Bomb" desc="Blow up a 2×2 patch of chips" value={bombCards} set={setBombCards} />
         <Stepper label="🔀 Reroll" desc="Swap this + one chosen card for 2 new" value={rerollCards} set={setRerollCards} />

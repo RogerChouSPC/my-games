@@ -84,7 +84,7 @@ export default function CreateRoom() {
     { key: 'plus', icon: '🪂', name: 'Airdrop', desc: 'Drop a chip on any empty number' },
     { key: 'minus', icon: '🎯', name: 'Snipe', desc: 'Shoot one enemy chip off the board' },
     { key: 'freeze', icon: '🧊', name: 'Freeze', desc: "Skip an opponent's next turn" },
-    { key: 'steal', icon: '🦹', name: 'Steal', desc: "Take a hidden card from an opponent's hand" },
+    { key: 'steal', icon: '🥷', name: 'Steal', desc: "Take a hidden card from an opponent's hand" },
     { key: 'shield', icon: '🛡️', name: 'Shield', desc: 'Secretly shield 2 of your chips (one-time)' },
     { key: 'bomb', icon: '💣', name: 'Bomb', desc: 'Blow up a 2×2 patch of chips' },
     { key: 'reroll', icon: '🔀', name: 'Reroll', desc: 'Swap this + one chosen card for 2 new' },

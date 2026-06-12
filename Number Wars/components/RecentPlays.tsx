@@ -14,7 +14,7 @@ const SPECIAL: Record<string, { face: string; color: string }> = {
   plus: { face: '🪂', color: '#ffd54f' },
   minus: { face: '🎯', color: '#ff5252' },
   freeze: { face: '🧊', color: '#80d8ff' },
-  steal: { face: '🦹', color: '#ce93d8' },
+  steal: { face: '🥷', color: '#ce93d8' },
   shield: { face: '🛡️', color: '#fff176' },
   bomb: { face: '💣', color: '#ff7043' },
   reroll: { face: '🔀', color: '#80cbc4' },

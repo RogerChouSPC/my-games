@@ -9,7 +9,7 @@ const EFFECTS: Record<
 > = {
   freeze: { icon: '🧊', cls: 'fx-freeze', color: '#80d8ff', title: (e) => `${e.byName} FROZE ${e.targetName ?? 'a player'}!` },
   steal: {
-    icon: '🦹',
+    icon: '🥷',
     cls: 'fx-steal',
     color: '#ce93d8',
     title: (e) => (e.targetName ? `${e.byName} stole a card from ${e.targetName}!` : `${e.byName} STOLE a card!`),

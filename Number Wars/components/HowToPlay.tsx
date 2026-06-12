@@ -6,17 +6,17 @@ const STEPS = [
   {
     icon: '🏆',
     title: 'Make a line to win',
-    text: 'Place chips on the board. Get enough chips in a row — across, down, or diagonal — to score a Line Win. The FREE BASE corners count for every team. Win the set number of lines and your team takes the game!',
+    text: 'Drop your squads on the battlefield. Get enough in a row — across, down, or diagonal — and they upgrade to TANKS (a Line Win). Fill a whole row and they become FIGHTER JETS — that counts as 2 Line Wins! FREE BASE corners count for every team.',
   },
   {
     icon: '🃏',
-    title: 'Number cards place chips',
-    text: 'Each card shows a math equation. Tap a card, then tap the matching glowing circle on the board to drop your chip there.',
+    title: 'Number cards deploy squads',
+    text: 'Each card shows a math equation. Tap a card, then tap the matching glowing circle on the board to deploy your squad there. (Hard mode hides the circles — solve it yourself!)',
   },
   {
     icon: '💣',
     title: 'Action cards shake things up',
-    text: '💣 Bomb blasts a 2×2 patch · 🎯 Snipe shoots an enemy chip · 🧊 Freeze skips a turn · 🦹 Steal grabs a card · 🛡️ Shield secretly protects your chips · 🔀 Reroll trades cards · 🪂 Airdrop lands anywhere.',
+    text: '💣 Bomb blasts a 2×2 patch · 🎯 Snipe shoots an enemy chip · 🧊 Freeze skips a turn · 🥷 Steal grabs a card · 🛡️ Shield secretly protects your chips · 🔀 Reroll trades cards · 🪂 Airdrop lands anywhere.',
   },
 ];
 

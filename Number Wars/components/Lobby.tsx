@@ -89,7 +89,7 @@ export default function Lobby({
       desc: 'Pick an opponent — their next turn is skipped. The ice shatters once their turn passes.',
     },
     {
-      key: 'steal', icon: '🦹', label: 'STEAL', name: 'Steal', accent: '#ce93d8', n: view.settings.stealCards,
+      key: 'steal', icon: '🥷', label: 'STEAL', name: 'Steal', accent: '#ce93d8', n: view.settings.stealCards,
       desc: 'Take a face-down card from an opponent’s hand into yours. You still play a card afterwards.',
     },
     {

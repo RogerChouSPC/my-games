@@ -1,3 +1,33 @@
+# Deploying Number Wars to a public server
+
+## Option A — Render free tier ($0/month) ← chosen 2026-06-12
+
+The code is already on GitHub (RogerChouSPC/my-games). You only need to click
+through Render's website once:
+
+1. Go to **https://render.com** and click **Get Started** → **Sign in with GitHub**
+   (approve the connection when GitHub asks).
+2. Click **New +** → **Web Service**.
+3. Pick the **my-games** repository (click **Connect**). If it isn't listed, click
+   **Configure account** and give Render access to it.
+4. Fill in the form:
+   - **Name:** `number-wars` (this becomes your web address)
+   - **Root Directory:** `Number Wars`  ← important, the game lives in this subfolder
+   - **Build Command:** `npm install && npm run build`
+   - **Start Command:** `npm run start`
+   - **Instance Type:** **Free**
+5. Click **Deploy Web Service** and wait ~3-5 minutes for the build.
+6. Your game is live at **https://number-wars.onrender.com** (shown at the top of
+   the page). Open it on any phone, share it, bookmark it.
+
+Notes:
+- Free tier sleeps after ~15 minutes with no visitors. The first person to open the
+  link then waits ~30-60 seconds while it wakes up; after that it's normal speed.
+- Every `git push` to GitHub redeploys automatically.
+
+## Option B — Railway ($5/month, always on)
+# (original guide below)
+
 # Deploying Sequence Numbers to Railway
 
 This guide takes the game from your PC to a public web link anyone can play.

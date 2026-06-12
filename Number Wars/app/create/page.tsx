@@ -186,6 +186,29 @@ export default function CreateRoom() {
           </div>
         </div>
 
+        {/* Battlefield */}
+        <div className="field">
+          <div className="field-label">Battlefield</div>
+          <div className="opt-cards">
+            {(
+              [
+                { key: 'desert', name: 'Desert' },
+                { key: 'ruins', name: 'Ancient Ruins' },
+                { key: 'city', name: 'City Ruin' },
+              ] as const
+            ).map((t) => (
+              <div
+                key={t.key}
+                className={`opt-card theme-card${boardTheme === t.key ? ' active' : ''}`}
+                onClick={() => setBoardTheme(t.key)}
+              >
+                <img src={`/board-themes/${t.key}.png`} alt={t.name} className="theme-thumb" />
+                <div className="rule">{t.name}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Sequences to win */}
         <div className="field">
           <div className="field-label">Line Wins to Win a Game</div>
@@ -222,6 +245,27 @@ export default function CreateRoom() {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Answer locations */}
+        <div className="settings-row">
+          <div>
+            <div className="settings-row-label">🧮 Show Answer&apos;s Location</div>
+            <div className="settings-row-desc">
+              {showAnswerLocations
+                ? 'On — tapping a card highlights its circles on the board'
+                : 'Off (hard mode) — players must solve and find the number themselves'}
+            </div>
+          </div>
+          <button
+            type="button"
+            className={`toggle${showAnswerLocations ? ' on' : ''}`}
+            onClick={() => setShowAnswerLocations((v) => !v)}
+            aria-pressed={showAnswerLocations}
+            aria-label="Toggle answer location highlighting"
+          >
+            <span className="toggle-knob" />
+          </button>
         </div>
 
         <div className="divider" />

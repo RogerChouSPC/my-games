@@ -95,6 +95,8 @@ button { font-family: inherit; cursor: pointer; }
 .opt-card.active { border-color: var(--accent); background: rgba(255,192,36,.1); box-shadow: 0 0 14px rgba(255,192,36,.2); }
 .opt-card .size { font-family: 'Russo One', system-ui, sans-serif; font-size: 19px; font-weight: 400; }
 .opt-card .rule { font-size: 10px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+.theme-card { padding: 8px 6px 10px; }
+.theme-thumb { width: 100%; border-radius: 8px; display: block; margin-bottom: 6px; }
 
 /* Big number selector buttons (with optional card-fan icon) */
 .num-btns { display: flex; gap: 10px; }

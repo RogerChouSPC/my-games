@@ -18,8 +18,16 @@ export default function CreateRoom() {
   const [sequencesToWin, setSequencesToWin] = useState(2);
   const [cardsPerPlayer, setCardsPerPlayer] = useState(3);
   const [cardsTouched, setCardsTouched] = useState(false);
-  const [plusCards, setPlusCards] = useState(2);
-  const [minusCards, setMinusCards] = useState(2);
+  // Special-card counts per deck (0-4 each), tunable here and later in the lobby.
+  const [special, setSpecial] = useState({
+    plus: 2,
+    minus: 2,
+    freeze: 0,
+    steal: 0,
+    shield: 0,
+    bomb: 0,
+    reroll: 0,
+  });
 
   useEffect(() => {
     const p = getSavedProfile();
@@ -48,14 +56,13 @@ export default function CreateRoom() {
       randomTeams: false,
       sequencesToWin,
       cardsPerPlayer,
-      plusCards,
-      minusCards,
-      // New special cards default to 0; the host tunes them in the lobby Settings panel.
-      freezeCards: 0,
-      stealCards: 0,
-      shieldCards: 0,
-      bombCards: 0,
-      rerollCards: 0,
+      plusCards: special.plus,
+      minusCards: special.minus,
+      freezeCards: special.freeze,
+      stealCards: special.steal,
+      shieldCards: special.shield,
+      bombCards: special.bomb,
+      rerollCards: special.reroll,
       timerEnabled: false,
       timerSeconds: 30,
     };
@@ -66,6 +73,18 @@ export default function CreateRoom() {
   };
 
   const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+  const bump = (k: keyof typeof special, d: number) =>
+    setSpecial((s) => ({ ...s, [k]: clamp(s[k] + d, 0, 4) }));
+
+  const SPECIALS: { key: keyof typeof special; icon: string; name: string; desc: string }[] = [
+    { key: 'plus', icon: '➕', name: 'Plus (wild)', desc: 'Place a chip on any empty number' },
+    { key: 'minus', icon: '➖', name: 'Minus (remove)', desc: 'Remove an opponent chip' },
+    { key: 'freeze', icon: '🧊', name: 'Freeze', desc: "Skip an opponent's next turn" },
+    { key: 'steal', icon: '🦹', name: 'Steal', desc: "Take a hidden card from an opponent's hand" },
+    { key: 'shield', icon: '🛡️', name: 'Shield', desc: 'Secretly shield 2 of your chips (one-time)' },
+    { key: 'bomb', icon: '💣', name: 'Bomb', desc: 'Blow up a 2×2 patch of chips' },
+    { key: 'reroll', icon: '🔀', name: 'Reroll', desc: 'Swap this + one chosen card for 2 new' },
+  ];
 
   return (
     <main className="page">
@@ -203,38 +222,31 @@ export default function CreateRoom() {
 
         <div className="divider" />
 
-        {/* Special cards */}
-        <div className="field-label" style={{ marginBottom: 12 }}>
-          Special Cards per Deck
+        {/* Special cards — same layout as the in-game settings panel */}
+        <div className="field-label" style={{ marginBottom: 4 }}>
+          Special Cards (per deck · Min 0 · Max 4)
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <div className="stepper">
-            <div className="stepper-label">➕ Plus (wild)</div>
-            <div className="stepper-desc">Min 0 · Max 4</div>
+        {SPECIALS.map((s) => (
+          <div className="settings-row" key={s.key}>
+            <div>
+              <div className="settings-row-label">
+                {s.icon} {s.name}
+              </div>
+              <div className="settings-row-desc">{s.desc}</div>
+            </div>
             <div className="stepper-ctrls">
-              <button className="step-btn" onClick={() => setPlusCards((v) => clamp(v - 1, 0, 4))}>
+              <button className="step-btn" onClick={() => bump(s.key, -1)}>
                 −
               </button>
-              <span className="stepper-val">{plusCards}</span>
-              <button className="step-btn" onClick={() => setPlusCards((v) => clamp(v + 1, 0, 4))}>
+              <span className="stepper-val" style={{ textAlign: 'center' }}>
+                {special[s.key]}
+              </span>
+              <button className="step-btn" onClick={() => bump(s.key, +1)}>
                 +
               </button>
             </div>
           </div>
-          <div className="stepper">
-            <div className="stepper-label">➖ Minus (remove)</div>
-            <div className="stepper-desc">Min 0 · Max 4</div>
-            <div className="stepper-ctrls">
-              <button className="step-btn" onClick={() => setMinusCards((v) => clamp(v - 1, 0, 4))}>
-                −
-              </button>
-              <span className="stepper-val">{minusCards}</span>
-              <button className="step-btn" onClick={() => setMinusCards((v) => clamp(v + 1, 0, 4))}>
-                +
-              </button>
-            </div>
-          </div>
-        </div>
+        ))}
 
         <div className="divider" />
 

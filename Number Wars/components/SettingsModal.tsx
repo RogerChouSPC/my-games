@@ -127,8 +127,8 @@ export default function SettingsModal({ view, onSave, onClose }: Props) {
         <div className="field-label" style={{ marginBottom: 8 }}>
           Special Cards (per deck · min 0 · max 4)
         </div>
-        <Stepper label="➕ Plus (wild)" desc="Place a chip on any empty number" value={plusCards} set={setPlusCards} />
-        <Stepper label="➖ Minus (remove)" desc="Remove an opponent chip" value={minusCards} set={setMinusCards} />
+        <Stepper label="🪂 Airdrop" desc="Drop a chip on any empty number" value={plusCards} set={setPlusCards} />
+        <Stepper label="🎯 Snipe" desc="Shoot one enemy chip off the board" value={minusCards} set={setMinusCards} />
         <Stepper label="🧊 Freeze" desc="Skip an opponent's next turn" value={freezeCards} set={setFreezeCards} />
         <Stepper label="🦹 Steal" desc="Take a hidden card from an opponent's hand" value={stealCards} set={setStealCards} />
         <Stepper label="🛡️ Shield" desc="Secretly shield 2 of your chips (one-time)" value={shieldCards} set={setShieldCards} />

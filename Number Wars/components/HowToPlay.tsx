@@ -4,9 +4,9 @@
 // per device on the home screen, and reachable any time from a "?" button.
 const STEPS = [
   {
-    icon: '🎯',
+    icon: '🏆',
     title: 'Make a line to win',
-    text: 'Place chips on the board. Get enough chips in a row — across, down, or diagonal — to score a Line Win. Win the set number of lines and your team takes the game!',
+    text: 'Place chips on the board. Get enough chips in a row — across, down, or diagonal — to score a Line Win. The FREE BASE corners count for every team. Win the set number of lines and your team takes the game!',
   },
   {
     icon: '🃏',
@@ -16,7 +16,7 @@ const STEPS = [
   {
     icon: '💣',
     title: 'Action cards shake things up',
-    text: '💣 Bomb blasts a 2×2 patch · − Minus removes an enemy chip · 🧊 Freeze skips a turn · 🦹 Steal grabs a card · 🛡️ Shield secretly protects your chips · 🔀 Reroll trades cards · ＋ Plus goes anywhere.',
+    text: '💣 Bomb blasts a 2×2 patch · 🎯 Snipe shoots an enemy chip · 🧊 Freeze skips a turn · 🦹 Steal grabs a card · 🛡️ Shield secretly protects your chips · 🔀 Reroll trades cards · 🪂 Airdrop lands anywhere.',
   },
 ];
 

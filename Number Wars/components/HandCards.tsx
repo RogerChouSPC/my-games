@@ -22,8 +22,10 @@ function isDead(card: Card, board: Cell[]): boolean {
   return cells.length > 0 && cells.every((c) => c.owner !== null);
 }
 
-// Visuals for the icon-based special cards (everything except number/plus/minus).
+// Visuals for the icon-based special cards (everything except number cards).
 const NEW_SPECIAL: Partial<Record<Card['kind'], { icon: string; label: string; accent: string }>> = {
+  plus: { icon: '🪂', label: 'AIRDROP', accent: '#ffd54f' },
+  minus: { icon: '🎯', label: 'SNIPE', accent: '#ff5252' },
   freeze: { icon: '🧊', label: 'FREEZE', accent: '#80d8ff' },
   steal: { icon: '🦹', label: 'STEAL', accent: '#ce93d8' },
   shield: { icon: '🛡️', label: 'SHIELD', accent: '#fff176' },
@@ -62,7 +64,11 @@ export default function HandCards({
             ? '🦹 Tap an opponent in the bar above to steal a card'
             : selected?.kind === 'bomb'
               ? '💣 Tap a spot to blow up that 2×2 patch'
-              : myTurn
+              : selected?.kind === 'plus'
+                ? '🪂 Airdrop: tap ANY open circle to drop a chip there'
+                : selected?.kind === 'minus'
+                  ? '🎯 Snipe: tap an enemy chip to shoot it off the board'
+                  : myTurn
         ? '🃏 Tap a card, then tap the matching circle on the board'
         : '🃏 Tap a card to preview your options — wait for your turn to place';
 
@@ -87,37 +93,6 @@ export default function HandCards({
         {hand.map((card) => {
           const active = card.id === selectedCardId;
           const dead = isDead(card, board);
-
-          if (card.kind === 'plus' || card.kind === 'minus') {
-            const sym = card.kind === 'plus' ? '+' : '−';
-            const accent = card.kind === 'plus' ? '#ffd700' : '#ff5252';
-            const corner = card.kind === 'plus' ? '★' : '✕';
-            return (
-              <div
-                key={card.id}
-                className={`hand-card${active ? ' active' : ''}`}
-                style={{ background: '#111' }}
-                onClick={() => handleTap(card, dead)}
-              >
-                {teamPiece}
-                <div className="card-corner-tl">
-                  {sym}
-                  <br />
-                  <span style={{ fontSize: 8, color: accent }}>{corner}</span>
-                </div>
-                <div className="card-corner-br">
-                  {sym}
-                  <br />
-                  <span style={{ fontSize: 8, color: accent }}>{corner}</span>
-                </div>
-                <div className="card-body" style={{ padding: '18px 6px' }}>
-                  <div className="card-eq" style={{ color: accent, fontSize: 26 }}>
-                    {sym}
-                  </div>
-                </div>
-              </div>
-            );
-          }
 
           const sp = NEW_SPECIAL[card.kind];
           if (sp) {

@@ -77,8 +77,8 @@ export default function CreateRoom() {
     setSpecial((s) => ({ ...s, [k]: clamp(s[k] + d, 0, 4) }));
 
   const SPECIALS: { key: keyof typeof special; icon: string; name: string; desc: string }[] = [
-    { key: 'plus', icon: '➕', name: 'Plus (wild)', desc: 'Place a chip on any empty number' },
-    { key: 'minus', icon: '➖', name: 'Minus (remove)', desc: 'Remove an opponent chip' },
+    { key: 'plus', icon: '🪂', name: 'Airdrop', desc: 'Drop a chip on any empty number' },
+    { key: 'minus', icon: '🎯', name: 'Snipe', desc: 'Shoot one enemy chip off the board' },
     { key: 'freeze', icon: '🧊', name: 'Freeze', desc: "Skip an opponent's next turn" },
     { key: 'steal', icon: '🦹', name: 'Steal', desc: "Take a hidden card from an opponent's hand" },
     { key: 'shield', icon: '🛡️', name: 'Shield', desc: 'Secretly shield 2 of your chips (one-time)' },

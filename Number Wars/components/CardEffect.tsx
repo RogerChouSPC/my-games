@@ -18,7 +18,7 @@ const EFFECTS: Record<
   bomb: { icon: '💥', cls: 'fx-bomb', color: '#ff7043', title: () => 'BOOM!' },
   reroll: { icon: '🔀', cls: 'fx-reroll', color: '#80cbc4', title: () => 'REROLL!' },
   shieldblock: { icon: '🛡️', cls: 'fx-shield', color: '#fff176', title: () => 'BLOCKED!' },
-  plus: { icon: '⭐', cls: 'fx-shield', color: '#ffd700', title: (e) => `${e.byName} played a WILD ＋!`, dur: 1600 },
+  plus: { icon: '🪂', cls: 'fx-shield', color: '#ffd700', title: (e) => `${e.byName} called an AIRDROP!`, dur: 1600 },
   skip: { icon: '❄️', cls: 'fx-freeze', color: '#80d8ff', title: (e) => `${e.targetName ?? 'A player'}'s turn skipped — frozen!`, dur: 2200 },
 };
 

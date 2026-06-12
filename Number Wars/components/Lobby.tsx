@@ -77,12 +77,12 @@ export default function Lobby({
   const modeNoun = mode === 'teams' ? 'Teams' : mode === 'solo' ? 'Players' : 'Sides';
   const specialCards = [
     {
-      key: 'plus', icon: '➕', label: 'WILD', name: 'Plus (Wild)', accent: '#ffd54f', n: view.settings.plusCards,
-      desc: 'Place a chip on ANY open number — you don’t need a matching equation. Great for completing a line.',
+      key: 'plus', icon: '🪂', label: 'AIRDROP', name: 'Airdrop', accent: '#ffd54f', n: view.settings.plusCards,
+      desc: 'Drop a chip on ANY open number — no matching equation needed. Great for completing a line.',
     },
     {
-      key: 'minus', icon: '➖', label: 'REMOVE', name: 'Minus (Remove)', accent: '#ff5252', n: view.settings.minusCards,
-      desc: 'Take one of an opponent’s chips off the board. A hidden Shield on that chip will block it.',
+      key: 'minus', icon: '🎯', label: 'SNIPE', name: 'Snipe', accent: '#ff5252', n: view.settings.minusCards,
+      desc: 'Shoot one enemy chip off the board. A hidden Shield on that chip will block the shot.',
     },
     {
       key: 'freeze', icon: '🧊', label: 'FREEZE', name: 'Freeze', accent: '#80d8ff', n: view.settings.freezeCards,
@@ -94,7 +94,7 @@ export default function Lobby({
     },
     {
       key: 'shield', icon: '🛡️', label: 'SHIELD', name: 'Shield', accent: '#fff176', n: view.settings.shieldCards,
-      desc: 'Secretly protect up to 2 of your own chips. Each shield blocks one Minus or Bomb, then breaks.',
+      desc: 'Secretly protect up to 2 of your own chips. Each shield blocks one Snipe or Bomb, then breaks.',
     },
     {
       key: 'bomb', icon: '💣', label: 'BOMB', name: 'Bomb', accent: '#ff7043', n: view.settings.bombCards,

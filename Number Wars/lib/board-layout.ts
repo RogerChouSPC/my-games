@@ -7,30 +7,33 @@ export function colorFor(value: number | 'FREE'): string {
   return PALETTE[value % PALETTE.length];
 }
 
-// Logical layout, row-major, top-left = index 0. 0 means FREE corner.
-// 8x8: numbers 1..30 each appear exactly twice (60 cells) + 4 FREE corners.
+// Logical layout, row-major, top-left = index 0. 0 means a FREE BASE corner.
+// PERMANENT layouts (generated 2026-06-12): randomized once with the constraint
+// that copies of the same number are at least 3 cells apart (Chebyshev distance),
+// so a pair never sits in the same neighbourhood.
+// 8x8: numbers 1..30 each appear exactly twice (60 cells) + 4 FREE BASE corners.
 const LAYOUT_8: number[] = [
-   0,  4, 14, 27,  2, 16,  5,  0,
-  10, 13,  9, 21,  1, 19, 23, 24,
-  17,  6, 18,  8,  3, 29, 22, 28,
-  30, 25, 26, 20, 15, 11, 12,  7,
-  20, 18, 22, 19,  6,  5, 27, 10,
-  16, 24, 17,  1, 14, 11, 29, 25,
-  15,  2, 13, 21, 12,  4, 26,  8,
-   0,  7,  3, 23, 30, 28,  9,  0,
+   0, 18, 28, 11, 10, 12, 22,  0,
+  17, 16,  3, 29,  4,  5, 21, 24,
+   2,  1, 27, 26, 24, 19, 23, 30,
+  14, 21, 11,  2, 10, 15, 20, 25,
+  13,  3, 17,  4, 25,  9, 18, 14,
+  28,  9, 19, 26, 12, 16,  6, 23,
+  22, 29, 30,  6,  1,  5, 20,  7,
+   0, 13, 27,  8,  7, 15,  8,  0,
 ];
 
-// 9x9: numbers 1..37 appear twice, 38 appears 3 times (77 cells) + 4 FREE corners.
+// 9x9: numbers 1..37 appear twice, 38 appears 3 times (77 cells) + 4 FREE BASE corners.
 const LAYOUT_9: number[] = [
-   0,  4, 14, 27,  2, 16,  5, 32,  0,
-  10, 13,  9, 21,  1, 19, 23, 24, 36,
-  17,  6, 18,  8,  3, 29, 22, 28, 33,
-  30, 25, 26, 20, 15, 11, 12,  7, 37,
-  31, 36, 34, 38, 38, 38, 34, 32, 31,
-  20, 18, 22, 19,  6,  5, 27, 10, 37,
-  16, 24, 17,  1, 14, 11, 29, 25, 33,
-  15,  2, 13, 21, 12,  4, 26,  8, 35,
-   0,  7,  3, 23, 30, 28,  9, 35,  0,
+   0, 38, 11, 16, 21, 11, 24, 37,  0,
+  13, 14, 20, 22, 18, 29,  8, 38,  9,
+  23, 17, 29, 15,  7, 35, 36, 17,  1,
+  22, 21, 26, 23, 10, 31, 30, 28, 34,
+  27, 25, 32, 24, 33,  4,  6, 20, 27,
+  19, 30,  5, 38,  2, 18, 15,  5, 37,
+   2, 26, 28, 19, 16,  8,  7, 31,  9,
+  12, 14,  3, 32, 33,  6, 36,  4,  3,
+   0, 25, 10, 12, 13, 34, 35,  1,  0,
 ];
 
 export function buildBoard(size: BoardSize): Cell[] {

@@ -79,8 +79,8 @@ export default function Board({
     <div className="board-area">
       <div className={`board-wrap${shaking ? ' shaking' : ''}`} ref={wrapRef}>
         <div className="board-label-row">
-          <div className="board-label">− MINUS REMOVE CHIP</div>
-          <div className="board-label">+ PLUS ARE WILD</div>
+          <div className="board-label">🎯 SNIPE REMOVES A CHIP</div>
+          <div className="board-label">🪂 AIRDROP LANDS ANYWHERE</div>
         </div>
         <div
           className={`board-grid${targetable.size > 0 ? ' has-targets' : ''}`}
@@ -116,7 +116,7 @@ export default function Board({
                     <>
                       FREE
                       <br />
-                      SPACE
+                      BASE
                     </>
                   ) : (
                     cell.value
@@ -142,8 +142,8 @@ export default function Board({
           })}
         </div>
         <div className="board-label-row" style={{ marginTop: 2 }}>
-          <div className="board-label">+ PLUS ARE WILD</div>
-          <div className="board-label">− MINUS REMOVE CHIP</div>
+          <div className="board-label">🪂 AIRDROP LANDS ANYWHERE</div>
+          <div className="board-label">🎯 SNIPE REMOVES A CHIP</div>
         </div>
       </div>
     </div>

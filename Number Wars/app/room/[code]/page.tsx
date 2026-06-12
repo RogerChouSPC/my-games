@@ -477,7 +477,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
     armedCell !== null && selectedCard
       ? selectedCard.kind === 'bomb'
         ? '💣 Tap the red area again to CONFIRM the blast — tap the card to cancel'
-        : '− Tap the red chip again to CONFIRM removal — tap the card to cancel'
+        : '🎯 Tap the red chip again to CONFIRM the snipe — tap the card to cancel'
       : null;
 
   const toggleMute = () => {

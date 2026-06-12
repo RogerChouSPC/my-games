@@ -11,8 +11,8 @@ const TEAM_HEX: Record<string, string> = {
 
 // Symbol + accent for each special card (number cards show their number instead).
 const SPECIAL: Record<string, { face: string; color: string }> = {
-  plus: { face: '+', color: '#ffd54f' },
-  minus: { face: '−', color: '#ff5252' },
+  plus: { face: '🪂', color: '#ffd54f' },
+  minus: { face: '🎯', color: '#ff5252' },
   freeze: { face: '🧊', color: '#80d8ff' },
   steal: { face: '🦹', color: '#ce93d8' },
   shield: { face: '🛡️', color: '#fff176' },

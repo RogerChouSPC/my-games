@@ -26,6 +26,7 @@ import CardEffect from '@/components/CardEffect';
 import StealPicker from '@/components/StealPicker';
 import TargetPicker from '@/components/TargetPicker';
 import RerollPicker from '@/components/RerollPicker';
+import UnitSprite from '@/components/UnitSprite';
 
 const TEAM_HEX: Record<string, string> = {
   red: '#ef5350',
@@ -537,9 +538,13 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
 
       {badgeTeam && (
         <div className="team-badge">
-          <span className={`mini-chip ${badgeTeam}`} />
           <span className="lbl" style={{ color: TEAM_HEX[badgeTeam] }}>
-            {selfTest ? `Now: ${badgeTeam} Team` : `${badgeTeam} Team`}
+            You are
+            <br />
+            {badgeTeam} Team
+          </span>
+          <span className="badge-unit">
+            <UnitSprite tier="squad" team={badgeTeam} />
           </span>
         </div>
       )}
@@ -725,7 +730,6 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
         board={view.board}
         selectedCardId={selectedCardId}
         myTurn={myTurn}
-        teamColor={actingTeam}
         discardMode={discardMode}
         armedHint={armedHint}
         hideAnswers={hideAnswers}

@@ -303,8 +303,10 @@ button { font-family: inherit; cursor: pointer; }
 .end-btn { background: #3a1a1a; border: 1px solid #ef5350; color: #ef9a9a; border-radius: 6px; padding: 3px 8px; font-size: 10px; font-weight: 700; }
 
 /* Persistent "your team / piece" badge, bottom-right (never blocks taps) */
-.team-badge { position: fixed; right: 8px; bottom: 104px; z-index: 40; display: flex; align-items: center; gap: 7px; background: rgba(26,26,46,.94); border: 1px solid var(--line); border-radius: 22px; padding: 5px 12px 5px 6px; box-shadow: 0 3px 10px rgba(0,0,0,.5); pointer-events: none; }
-.team-badge .lbl { font-size: 11px; font-weight: 800; color: #fff; text-transform: capitalize; }
+.team-badge { position: fixed; right: 8px; bottom: 104px; z-index: 40; display: flex; flex-direction: column; align-items: center; gap: 4px; background: rgba(26,26,46,.94); border: 1px solid var(--line); border-radius: 14px; padding: 7px 12px 6px; box-shadow: 0 3px 10px rgba(0,0,0,.5); pointer-events: none; }
+.team-badge .lbl { font-size: 11px; font-weight: 800; color: #fff; text-transform: capitalize; text-align: center; line-height: 1.35; }
+.team-badge .badge-unit { width: 34px; height: 30px; display: block; }
+.team-badge .badge-unit svg { width: 100%; height: 100%; filter: drop-shadow(0 1px 2px rgba(0,0,0,.6)); }
 .mini-chip { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; filter: drop-shadow(0 0 1.5px #fff) drop-shadow(0 1px 2px rgba(0,0,0,.6)); }
 .mini-chip.red { background: radial-gradient(circle at 40% 30%, #ff8a80, #e53935, #7f0000); }
 .mini-chip.blue { background: radial-gradient(circle at 40% 30%, #80d8ff, #1e88e5, #0d2b6e); }
@@ -501,12 +503,6 @@ button { font-family: inherit; cursor: pointer; }
 .hand-label.discard { color: #ffab91; font-weight: 700; font-size: 11px; }
 .hand-cards.discardable .hand-card { outline: 2px solid #ef5350; outline-offset: 1px; cursor: pointer; }
 
-/* Team-colour piece in the top-right corner of every hand card (kept clear of the equation) */
-.card-team-piece { position: absolute; right: 3px; top: 3px; width: 12px; height: 12px; border-radius: 50%; z-index: 3; filter: drop-shadow(0 0 1px #fff) drop-shadow(0 1px 1px rgba(0,0,0,.5)); }
-.card-team-piece.red { background: radial-gradient(circle at 40% 30%, #ff8a80, #e53935, #7f0000); }
-.card-team-piece.blue { background: radial-gradient(circle at 40% 30%, #80d8ff, #1e88e5, #0d2b6e); }
-.card-team-piece.green { background: radial-gradient(circle at 40% 30%, #ccff90, #388e3c, #003300); }
-.card-team-piece.purple { background: radial-gradient(circle at 40% 30%, #ce93d8, #8e24aa, #4a0072); }
 
 /* "You're on X Team" colour line */
 .my-team-line { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 14px; font-size: 15px; font-weight: 800; text-transform: capitalize; }

@@ -1,12 +1,11 @@
 'use client';
-import type { Card, Cell, TeamColor } from '@/types/game';
+import type { Card, Cell } from '@/types/game';
 
 interface HandCardsProps {
   hand: Card[];
   board: Cell[];
   selectedCardId: string | null;
   myTurn: boolean;
-  teamColor: TeamColor | null;
   discardMode: boolean;
   armedHint?: string | null; // overrides the helper label while a Bomb/Minus awaits its confirm tap
   hideAnswers?: boolean; // hard mode: number cards don't highlight their cells
@@ -72,7 +71,6 @@ export default function HandCards({
   board,
   selectedCardId,
   myTurn,
-  teamColor,
   discardMode,
   armedHint,
   hideAnswers,
@@ -80,9 +78,6 @@ export default function HandCards({
   onSwapDead,
   onDiscard,
 }: HandCardsProps) {
-  // The little team chip shown on the right edge of every card.
-  const teamPiece = teamColor ? <span className={`card-team-piece ${teamColor}`} /> : null;
-
   const selected = hand.find((c) => c.id === selectedCardId) ?? null;
   const label = armedHint
     ? armedHint
@@ -135,7 +130,6 @@ export default function HandCards({
                 style={{ background: '#111' }}
                 onClick={() => handleTap(card, false)}
               >
-                {teamPiece}
                 <div className="card-body" style={{ flexDirection: 'column', gap: 4, padding: '14px 6px' }}>
                   <div style={{ fontSize: 26 }}>{sp.icon}</div>
                   <div style={{ fontSize: 9, fontWeight: 800, color: sp.accent, letterSpacing: 1 }}>
@@ -154,7 +148,6 @@ export default function HandCards({
               className={`hand-card${active ? ' active' : ''}${dead && !discardMode ? ' dead' : ''}`}
               onClick={() => handleTap(card, dead)}
             >
-              {teamPiece}
               {dead && !discardMode && (
                 <span
                   className="swap-tag"

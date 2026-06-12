@@ -8,3 +8,4 @@ memory
 .playwright-mcp
 *.log
 CURRENT-LINK.txt
+tsconfig.tsbuildinfo

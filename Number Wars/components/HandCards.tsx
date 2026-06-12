@@ -166,7 +166,12 @@ export default function HandCards({
                   swap
                 </span>
               )}
-              {parts.length === 3 && <span className="corner-badge" style={{ background: ink }} />}
+              {parts.length === 3 && (
+                <>
+                  <span className="corner-badge" style={{ background: ink }} />
+                  <span className="corner-badge corner-badge-br" style={{ background: ink }} />
+                </>
+              )}
               <div className="card-body">
                 <EquationStack equation={card.equation} color={ink} />
               </div>

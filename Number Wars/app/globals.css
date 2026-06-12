@@ -530,8 +530,9 @@ button { font-family: inherit; cursor: pointer; }
 .eq-div { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 19px; }
 .eq-div i { width: 5.5px; height: 5.5px; border-radius: 50%; background: currentColor; }
 .eq-div b { width: 18px; height: 4px; border-radius: 2px; background: currentColor; }
-/* Plain colored wedge in the card's top-left corner, like the reference deck. */
+/* Plain colored wedges in the card's top-left and bottom-right corners. */
 .corner-badge { position: absolute; top: 0; left: 0; width: 18px; height: 18px; border-radius: 0 0 20px 0; z-index: 2; }
+.corner-badge.corner-badge-br { top: auto; left: auto; bottom: 0; right: 0; border-radius: 20px 0 0 0; }
 .card-footer { padding: 2px 6px 4px; display: flex; justify-content: flex-end; }
 .card-corner-tl { position: absolute; top: 4px; left: 5px; font-size: 10px; font-weight: 900; color: #fff; line-height: 1; text-align: center; }
 .card-corner-br { position: absolute; bottom: 4px; right: 5px; font-size: 10px; font-weight: 900; color: #fff; transform: rotate(180deg); line-height: 1; text-align: center; }

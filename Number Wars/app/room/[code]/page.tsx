@@ -25,6 +25,7 @@ import SuperSequence from '@/components/SuperSequence';
 import CardEffect from '@/components/CardEffect';
 import StealPicker from '@/components/StealPicker';
 import TargetPicker from '@/components/TargetPicker';
+import RerollPicker from '@/components/RerollPicker';
 
 const TEAM_HEX: Record<string, string> = {
   red: '#ef5350',
@@ -646,6 +647,19 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
           />
         )}
 
+      {/* Reroll: popup to choose which other card to trade in. */}
+      {selectedCard?.kind === 'reroll' && myTurn && !frozen && view.myHand.length > 1 && (
+        <RerollPicker
+          hand={view.myHand}
+          rerollCardId={selectedCard.id}
+          onPick={(swapId) => {
+            emit('play-reroll', { code, cardId: selectedCard.id, swapCardId: swapId });
+            setSelectedCardId(null);
+          }}
+          onCancel={() => setSelectedCardId(null)}
+        />
+      )}
+
       {/* Step 2 (Steal only): blindly pick one of that opponent's cards. */}
       {stealTarget && selectedCard?.kind === 'steal' && (
         <StealPicker
@@ -698,10 +712,6 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
         }}
         onDiscard={(id) => {
           emit('discard-card', { code, cardId: id });
-          setSelectedCardId(null);
-        }}
-        onReroll={(id, swapId) => {
-          emit('play-reroll', { code, cardId: id, swapCardId: swapId });
           setSelectedCardId(null);
         }}
       />

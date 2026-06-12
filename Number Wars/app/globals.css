@@ -580,3 +580,12 @@ button, .cell, .hand-card, .player-chip, .char-item { touch-action: manipulation
 
 /* Stronger glow on valid target cells so choices pop in bright light. */
 .cell.targetable { outline-width: 4px; outline-offset: -4px; }
+
+/* Reroll popup: face-up picks from your own hand. */
+.reroll-pick-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.reroll-pick-card { position: relative; width: 64px; height: 86px; border-radius: 12px; background: #fff; border: 2px solid rgba(255,255,255,.2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; box-shadow: 1px 3px 8px rgba(0,0,0,.5); cursor: pointer; transition: transform .12s, border-color .12s; overflow: hidden; }
+.reroll-pick-card:hover { transform: translateY(-4px); border-color: var(--accent); }
+.reroll-pick-card .rp-header { position: absolute; top: 0; left: 0; right: 0; height: 14px; }
+.reroll-pick-card .rp-eq { font-size: 14px; font-weight: 900; color: #111; }
+.reroll-pick-card .rp-label { font-size: 9px; font-weight: 800; letter-spacing: .5px; }
+.reroll-pick-card:has(.rp-label) { background: #111; }

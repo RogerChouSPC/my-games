@@ -12,7 +12,6 @@ interface HandCardsProps {
   onSelect: (cardId: string) => void;
   onSwapDead: (cardId: string) => void;
   onDiscard: (cardId: string) => void;
-  onReroll: (cardId: string, swapCardId: string) => void;
 }
 
 // A number card is dead if every board cell with its target is already owned.
@@ -44,7 +43,6 @@ export default function HandCards({
   onSelect,
   onSwapDead,
   onDiscard,
-  onReroll,
 }: HandCardsProps) {
   // The little team chip shown on the right edge of every card.
   const teamPiece = teamColor ? <span className={`card-team-piece ${teamColor}`} /> : null;
@@ -57,7 +55,7 @@ export default function HandCards({
     : selected?.kind === 'freeze'
       ? '🧊 Tap an opponent in the bar above to freeze them'
       : selected?.kind === 'reroll'
-        ? '🔀 Tap another card to swap it + this Reroll for 2 fresh cards'
+        ? '🔀 Choose which card to trade in the popup'
         : selected?.kind === 'shield'
           ? '🛡️ Tap up to 2 of YOUR chips to shield (hidden from enemies)'
           : selected?.kind === 'steal'
@@ -77,11 +75,7 @@ export default function HandCards({
       onDiscard(card.id);
       return;
     }
-    // Reroll: with a reroll card selected, tapping a DIFFERENT card swaps both for fresh ones.
-    if (selected?.kind === 'reroll' && card.id !== selected.id) {
-      onReroll(selected.id, card.id);
-      return;
-    }
+    // Reroll swaps are chosen in a popup (RerollPicker), not by tapping the hand.
     if (card.kind === 'number' && dead) return;
     onSelect(card.id);
   };

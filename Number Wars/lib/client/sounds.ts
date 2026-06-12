@@ -15,7 +15,9 @@ export type SoundName =
   | 'plus' // wild card sparkle
   | 'turn' // your turn started
   | 'win' // line win / game win
-  | 'super'; // super line win fanfare
+  | 'super' // super line win fanfare
+  | 'upgrade' // squad promoted to tank (line win locked in)
+  | 'wrong'; // hard mode: tapped the wrong circle
 
 const MUTE_KEY = 'nw_muted';
 let ctx: AudioContext | null = null;
@@ -148,6 +150,13 @@ const FX: Record<SoundName, (c: AudioContext) => void> = {
   super: (c) => {
     [392, 523, 659, 784].forEach((f, i) => tone(c, { freq: f, dur: 0.26, vol: 0.18, at: i * 0.13 }));
     tone(c, { freq: 1046, dur: 0.5, vol: 0.16, at: 0.52 });
+  },
+  upgrade: (c) => {
+    [392, 587, 784].forEach((f, i) => tone(c, { freq: f, dur: 0.14, vol: 0.16, at: i * 0.08 }));
+  },
+  wrong: (c) => {
+    tone(c, { freq: 220, end: 160, type: 'square', dur: 0.12, vol: 0.12 });
+    tone(c, { freq: 185, end: 140, type: 'square', dur: 0.16, vol: 0.12, at: 0.1 });
   },
 };
 

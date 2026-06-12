@@ -1,10 +1,23 @@
 import type { BoardSize, Cell } from '@/types/game';
 
-const PALETTE = ['#c62828', '#7b1fa2', '#1976d2', '#388e3c', '#f57c00', '#00838f', '#00bcd4'];
+// War-theme number colors: range buckets (matches the card headers automatically,
+// since buildDeck copies cell.color onto each number card).
+export const WAR_GREEN = '#43a047'; // 1-10
+export const WAR_RED = '#e53935'; // 11-20
+export const WAR_YELLOW = '#fdd835'; // 21-30 (dark outline for readability)
+export const WAR_BLUE = '#1e88e5'; // 31-38 (only on 9x9 boards)
 
 export function colorFor(value: number | 'FREE'): string {
   if (value === 'FREE') return '#111111';
-  return PALETTE[value % PALETTE.length];
+  if (value <= 10) return WAR_GREEN;
+  if (value <= 20) return WAR_RED;
+  if (value <= 30) return WAR_YELLOW;
+  return WAR_BLUE;
+}
+
+// Which outline keeps the digit readable on the battlefield art.
+export function numberOutline(color: string): 'dark' | 'light' {
+  return color === WAR_YELLOW ? 'dark' : 'light';
 }
 
 // Logical layout, row-major, top-left = index 0. 0 means a FREE BASE corner.

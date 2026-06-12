@@ -1,13 +1,34 @@
 import { describe, it, expect } from 'vitest';
-import { colorFor, buildBoard } from './board-layout';
+import { colorFor, numberOutline, buildBoard } from './board-layout';
 
-describe('colorFor', () => {
-  it('returns a stable hex color for a number', () => {
-    expect(colorFor(19)).toMatch(/^#[0-9a-f]{6}$/i);
-    expect(colorFor(19)).toBe(colorFor(19));
+describe('colorFor (war range buckets)', () => {
+  it('colors 1-10 green', () => {
+    expect(colorFor(1)).toBe('#43a047');
+    expect(colorFor(10)).toBe('#43a047');
+  });
+  it('colors 11-20 red', () => {
+    expect(colorFor(11)).toBe('#e53935');
+    expect(colorFor(20)).toBe('#e53935');
+  });
+  it('colors 21-30 yellow', () => {
+    expect(colorFor(21)).toBe('#fdd835');
+    expect(colorFor(30)).toBe('#fdd835');
+  });
+  it('colors 31-38 blue', () => {
+    expect(colorFor(31)).toBe('#1e88e5');
+    expect(colorFor(38)).toBe('#1e88e5');
   });
   it('gives FREE corners black', () => {
     expect(colorFor('FREE')).toBe('#111111');
+  });
+});
+
+describe('numberOutline', () => {
+  it('yellow numbers get a dark outline, all others light', () => {
+    expect(numberOutline(colorFor(24))).toBe('dark');
+    expect(numberOutline(colorFor(5))).toBe('light');
+    expect(numberOutline(colorFor(15))).toBe('light');
+    expect(numberOutline(colorFor(33))).toBe('light');
   });
 });
 

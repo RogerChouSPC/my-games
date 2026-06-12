@@ -5,7 +5,7 @@ const TEAM_HEX: Record<TeamColor, string> = {
   red: '#ef5350',
   blue: '#42a5f5',
   green: '#66bb6a',
-  yellow: '#ffca28',
+  purple: '#ab47bc',
 };
 
 const CONFETTI_COLORS = ['#ef5350', '#42a5f5', '#66bb6a', '#ffca28', '#e040fb', '#7c4dff'];

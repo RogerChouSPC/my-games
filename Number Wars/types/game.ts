@@ -1,4 +1,4 @@
-export type TeamColor = 'red' | 'blue' | 'green' | 'yellow';
+export type TeamColor = 'red' | 'blue' | 'green' | 'purple';
 export type BoardSize = 8 | 9;
 export type Phase = 'lobby' | 'playing' | 'between' | 'final';
 

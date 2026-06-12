@@ -5,13 +5,13 @@ const TEAM_HEX: Record<TeamColor, string> = {
   red: '#ef5350',
   blue: '#42a5f5',
   green: '#66bb6a',
-  yellow: '#ffca28',
+  purple: '#ab47bc',
 };
 const TEAM_EMOJI: Record<TeamColor, string> = {
   red: '🔴',
   blue: '🔵',
   green: '🟢',
-  yellow: '🟡',
+  purple: '🟣',
 };
 
 interface BetweenGamesProps {

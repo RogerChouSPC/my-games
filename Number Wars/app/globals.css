@@ -219,7 +219,7 @@ button { font-family: inherit; cursor: pointer; }
 }
 .team-join-btn:disabled { opacity: .55; cursor: default; font-size: 13px; }
 .team-join-red { background: #ef5350; } .team-join-blue { background: #42a5f5; }
-.team-join-green { background: #66bb6a; } .team-join-yellow { background: #ffca28; color: #5a4500; }
+.team-join-green { background: #66bb6a; } .team-join-purple { background: #ab47bc; color: #fff; }
 .team-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; }
 
 /* Scan-to-join QR */
@@ -277,7 +277,7 @@ button { font-family: inherit; cursor: pointer; }
 .team-red { border-color: #ef5350; } .team-red .team-dot { background: #ef5350; } .team-red .team-name { color: #ef9a9a; }
 .team-blue { border-color: #42a5f5; } .team-blue .team-dot { background: #42a5f5; } .team-blue .team-name { color: #90caf9; }
 .team-green { border-color: #66bb6a; } .team-green .team-dot { background: #66bb6a; } .team-green .team-name { color: #a5d6a7; }
-.team-yellow { border-color: #ffca28; } .team-yellow .team-dot { background: #ffca28; } .team-yellow .team-name { color: #ffe082; }
+.team-purple { border-color: #ab47bc; } .team-purple .team-dot { background: #ab47bc; } .team-purple .team-name { color: #ce93d8; }
 
 /* ---------- Game screen ---------- */
 .game-wrap { display: flex; flex-direction: column; height: 100vh; height: 100dvh; max-width: 640px; margin: 0 auto; overflow: hidden; }
@@ -307,7 +307,7 @@ button { font-family: inherit; cursor: pointer; }
 .mini-chip.red { background: radial-gradient(circle at 40% 30%, #ff8a80, #e53935, #7f0000); }
 .mini-chip.blue { background: radial-gradient(circle at 40% 30%, #80d8ff, #1e88e5, #0d2b6e); }
 .mini-chip.green { background: radial-gradient(circle at 40% 30%, #ccff90, #388e3c, #003300); }
-.mini-chip.yellow { background: radial-gradient(circle at 40% 30%, #fff59d, #fbc02d, #6f4e00); }
+.mini-chip.purple { background: radial-gradient(circle at 40% 30%, #ce93d8, #8e24aa, #4a0072); }
 
 /* Turn band: queue on the left, "last plays" feed on the right — always one row. */
 .turn-row { display: flex; align-items: stretch; gap: 6px; background: var(--panel-2); border-bottom: 1px solid #1e1e35; flex-wrap: nowrap; }
@@ -422,12 +422,12 @@ button { font-family: inherit; cursor: pointer; }
 .chip-red { background: radial-gradient(circle at 40% 30%, #ff8a80 0%, #e53935 45%, #7f0000 100%); filter: drop-shadow(0 0 2.5px #fff) drop-shadow(0 0 1px #fff) drop-shadow(0 3px 4px rgba(0,0,0,.7)); }
 .chip-blue { background: radial-gradient(circle at 40% 30%, #80d8ff 0%, #1e88e5 45%, #0d2b6e 100%); filter: drop-shadow(0 0 2.5px #fff) drop-shadow(0 0 1px #fff) drop-shadow(0 3px 4px rgba(0,0,0,.7)); }
 .chip-green { background: radial-gradient(circle at 40% 30%, #ccff90 0%, #388e3c 45%, #003300 100%); filter: drop-shadow(0 0 2.5px #fff) drop-shadow(0 0 1px #fff) drop-shadow(0 3px 4px rgba(0,0,0,.7)); }
-.chip-yellow { background: radial-gradient(circle at 40% 30%, #fff59d 0%, #fbc02d 45%, #6f4e00 100%); filter: drop-shadow(0 0 2.5px #fff) drop-shadow(0 0 1px #fff) drop-shadow(0 3px 4px rgba(0,0,0,.7)); }
+.chip-purple { background: radial-gradient(circle at 40% 30%, #ce93d8 0%, #8e24aa 45%, #4a0072 100%); filter: drop-shadow(0 0 2.5px #fff) drop-shadow(0 0 1px #fff) drop-shadow(0 3px 4px rgba(0,0,0,.7)); }
 .chip.bumpy { background-image: radial-gradient(circle, rgba(255,255,255,.35) 1.3px, transparent 1.3px), var(--chip-grad); background-size: 4px 4px, 100% 100%; }
 .chip-red.bumpy { --chip-grad: radial-gradient(circle at 40% 30%, #ff8a80, #e53935, #7f0000); filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 8px #ef5350) drop-shadow(0 3px 5px rgba(0,0,0,.7)); }
 .chip-blue.bumpy { --chip-grad: radial-gradient(circle at 40% 30%, #80d8ff, #1e88e5, #0d2b6e); filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 8px #42a5f5) drop-shadow(0 3px 5px rgba(0,0,0,.7)); }
 .chip-green.bumpy { --chip-grad: radial-gradient(circle at 40% 30%, #ccff90, #388e3c, #003300); filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 8px #66bb6a) drop-shadow(0 3px 5px rgba(0,0,0,.7)); }
-.chip-yellow.bumpy { --chip-grad: radial-gradient(circle at 40% 30%, #fff59d, #fbc02d, #6f4e00); filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 8px #ffca28) drop-shadow(0 3px 5px rgba(0,0,0,.7)); }
+.chip-purple.bumpy { --chip-grad: radial-gradient(circle at 40% 30%, #ce93d8, #8e24aa, #4a0072); filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 8px #ab47bc) drop-shadow(0 3px 5px rgba(0,0,0,.7)); }
 .chip.in-sequence { animation: seqpulse 1.4s ease-in-out infinite; }
 .shield-badge { position: absolute; top: -2px; right: -2px; font-size: clamp(8px, 2.6vw, 14px); z-index: 3; filter: drop-shadow(0 0 2px #000); pointer-events: none; }
 .chip-reveal-num { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 4; font-weight: 900; color: #fff; font-size: clamp(9px, 4vw, 20px); text-shadow: 0 1px 2px #000, 0 0 5px #000, 0 0 9px #000; pointer-events: none; }
@@ -451,7 +451,7 @@ button { font-family: inherit; cursor: pointer; }
 .card-team-piece.red { background: radial-gradient(circle at 40% 30%, #ff8a80, #e53935, #7f0000); }
 .card-team-piece.blue { background: radial-gradient(circle at 40% 30%, #80d8ff, #1e88e5, #0d2b6e); }
 .card-team-piece.green { background: radial-gradient(circle at 40% 30%, #ccff90, #388e3c, #003300); }
-.card-team-piece.yellow { background: radial-gradient(circle at 40% 30%, #fff59d, #fbc02d, #6f4e00); }
+.card-team-piece.purple { background: radial-gradient(circle at 40% 30%, #ce93d8, #8e24aa, #4a0072); }
 
 /* "You're on X Team" colour line */
 .my-team-line { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 14px; font-size: 15px; font-weight: 800; text-transform: capitalize; }

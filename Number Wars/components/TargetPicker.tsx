@@ -5,7 +5,7 @@ const TEAM_HEX: Record<string, string> = {
   red: '#ef5350',
   blue: '#42a5f5',
   green: '#66bb6a',
-  yellow: '#ffca28',
+  purple: '#ab47bc',
 };
 
 interface Props {

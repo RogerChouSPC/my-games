@@ -48,7 +48,7 @@ function makeCode(): string {
   return Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
 }
 
-const COLORS: TeamColor[] = ['red', 'blue', 'green', 'yellow'];
+const COLORS: TeamColor[] = ['red', 'blue', 'green', 'purple'];
 
 function teamsFor(n: number) {
   return COLORS.slice(0, n).map((color) => ({ color, sequencesThisGame: 0, gameWins: 0 }));

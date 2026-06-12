@@ -8,7 +8,7 @@ const TEAM_NAME: Record<TeamColor, string> = {
   red: 'Red',
   blue: 'Blue',
   green: 'Green',
-  yellow: 'Yellow',
+  purple: 'Purple',
 };
 
 interface LobbyProps {
@@ -71,7 +71,7 @@ export default function Lobby({
     red: '#ef5350',
     blue: '#42a5f5',
     green: '#66bb6a',
-    yellow: '#ffca28',
+    purple: '#ab47bc',
   };
 
   const modeNoun = mode === 'teams' ? 'Teams' : mode === 'solo' ? 'Players' : 'Sides';

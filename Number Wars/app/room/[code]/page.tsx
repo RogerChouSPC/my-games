@@ -31,13 +31,13 @@ const TEAM_HEX: Record<string, string> = {
   red: '#ef5350',
   blue: '#42a5f5',
   green: '#66bb6a',
-  yellow: '#ffca28',
+  purple: '#ab47bc',
 };
 const TEAM_EMOJI: Record<string, string> = {
   red: '🔴',
   blue: '🔵',
   green: '🟢',
-  yellow: '🟡',
+  purple: '🟣',
 };
 
 export default function RoomPage({ params }: { params: Promise<{ code: string }> }) {
@@ -499,7 +499,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
         <div className="turn-flash">
           <span
             className="turn-flash-text"
-            style={{ '--turn-color': TEAM_HEX[myTeam ?? 'yellow'] ?? '#ffd54f' } as React.CSSProperties}
+            style={{ '--turn-color': TEAM_HEX[myTeam ?? 'purple'] ?? '#ffd54f' } as React.CSSProperties}
           >
             ⚔️ Your Turn
           </span>

@@ -16,36 +16,27 @@ existing mechanic. FREE BASE corners already count for every team's lines.
 
 ## 1. Battlefields (board backgrounds)
 
-- Three artworks × two sizes = **6 board images**. Originals in `board theme/{8x8,9x9}/`;
-  the originals have unevenly painted grid blocks (AI artifact), so they were
-  **grid-straightened** (painted lines detected per row/column, all blocks re-sliced to
-  uniform spacing) into `board theme/fixed/`:
-  `desert-8.png, desert-9.png, ruins-8.png, ruins-9.png, city-8.png, city-9.png`.
-  These fixed images are the production assets — copy them to `public/board-themes/`.
+- **Clean artwork approach**: Roger supplies each theme as plain terrain art with NO
+  painted grid lines, NO FREE BASE medallions, NO frame labels. The game draws its own
+  perfectly even grid, frame, and FREE BASE medallions on top — alignment is exact by
+  construction and one image per theme serves both 8×8 and 9×9.
+  - Expected assets (square PNG, ≥1024×1024) in `board theme/clean/`:
+    `desert.png`, `ruins.png`, `city.png` → copied to `public/board-themes/`.
+  - App-drawn overlay: thin semi-transparent dark grid lines (`#00000035`, ~1.5px),
+    a dark frame border, and corner FREE BASE medallions recreating the artwork style
+    (black disc, gold "FREE BASE" text).
+  - Fallback: the grid-straightened originals in `board theme/fixed/` (with the
+    calibration insets recorded in git history) remain usable if a clean image is
+    missing — but the clean approach is the plan of record.
 - New setting `boardTheme: 'desert' | 'ruins' | 'city'` (default `'desert'`).
   - Host picks on the Create Room page (3 preview thumbnails) and can change it in the
     lobby SettingsModal. Must be added to the `applySettingsUpdate` whitelist
     (`lib/settings.ts`) or lobby edits will be silently dropped.
 - Rendering (`components/Board.tsx`, `app/globals.css`):
-  - `.board-wrap` displays the theme image (`background-size: 100% 100%`); remove the
-    gray frame/cell backgrounds. Cells become transparent hit areas; the artwork's
-    baked-in grid lines do the visual work.
-  - The grid overlay is inset from the wrap edge to match each artwork's painted frame.
-    **Calibrated insets** (verified vs the fixed images with screenshot overlays;
-    store as constants keyed by theme+size):
-
-    | Board     | top  | right | bottom | left |
-    |-----------|------|-------|--------|------|
-    | desert-8  | 3.3% | 2.9%  | 3.0%   | 3.4% |
-    | ruins-8   | 2.3% | 2.3%  | 2.3%   | 2.3% |
-    | city-8    | 5.6% | 1.5%  | 1.4%   | 5.7% |
-    | desert-9  | 3.3% | 2.5%  | 2.6%   | 3.4% |
-    | ruins-9   | 2.0% | 2.0%  | 2.0%   | 2.0% |
-    | city-9    | 3.0% | 2.4%  | 2.5%   | 3.0% |
-
-    (city-8 has coordinate labels baked into its top/left frame; city-9 does not.)
-  - FREE corners: artwork already shows "FREE BASE" medallions — render no circle there,
-    keep the (non-interactive) cell.
+  - `.board-wrap` displays the theme image (`background-size: cover`); remove the gray
+    frame/cell backgrounds. Cells become transparent hit areas with app-drawn grid lines.
+  - FREE corners: app renders the FREE BASE medallion (replaces the current
+    `.circle.free` black circle — same concept, war styling).
   - Keep: targetable yellow outline, danger preview, removal brackets, bomb shake,
     last-move marker, shield badge, top-half number rotation.
 

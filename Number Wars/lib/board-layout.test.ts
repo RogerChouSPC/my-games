@@ -24,11 +24,11 @@ describe('colorFor (war range buckets)', () => {
 });
 
 describe('numberOutline', () => {
-  it('yellow numbers get a dark outline, all others light', () => {
+  it('every number gets a dark (black) outline', () => {
     expect(numberOutline(colorFor(24))).toBe('dark');
-    expect(numberOutline(colorFor(5))).toBe('light');
-    expect(numberOutline(colorFor(15))).toBe('light');
-    expect(numberOutline(colorFor(33))).toBe('light');
+    expect(numberOutline(colorFor(5))).toBe('dark');
+    expect(numberOutline(colorFor(15))).toBe('dark');
+    expect(numberOutline(colorFor(33))).toBe('dark');
   });
 });
 

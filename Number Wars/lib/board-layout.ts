@@ -15,9 +15,9 @@ export function colorFor(value: number | 'FREE'): string {
   return WAR_BLUE;
 }
 
-// Which outline keeps the digit readable on the battlefield art.
-export function numberOutline(color: string): 'dark' | 'light' {
-  return color === WAR_YELLOW ? 'dark' : 'light';
+// Every number digit gets a black outline on the battlefield art (Roger's call).
+export function numberOutline(_color: string): 'dark' | 'light' {
+  return 'dark';
 }
 
 // Logical layout, row-major, top-left = index 0. 0 means a FREE BASE corner.

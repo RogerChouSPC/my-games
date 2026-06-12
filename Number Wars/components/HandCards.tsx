@@ -15,6 +15,24 @@ interface HandCardsProps {
   onDiscard: (cardId: string) => void;
 }
 
+// Equation displayed like written arithmetic: the two numbers stacked in big
+// digits, the operator on the right, and an answer line underneath.
+function EquationStack({ equation }: { equation: string | null }) {
+  const parts = (equation ?? '').split(' ');
+  if (parts.length !== 3) return <div className="card-eq">{equation}</div>;
+  const [a, op, b] = parts;
+  const sign = op === '-' ? '−' : op; // true minus sign reads better than a hyphen
+  return (
+    <div className="card-eq-stack">
+      <div className="eq-nums">
+        <span>{a}</span>
+        <span>{b}</span>
+      </div>
+      <span className="eq-op">{sign}</span>
+    </div>
+  );
+}
+
 // A number card is dead if every board cell with its target is already owned.
 function isDead(card: Card, board: Cell[]): boolean {
   if (card.kind !== 'number') return false;
@@ -134,7 +152,7 @@ export default function HandCards({
                 <span style={{ color: '#fff', fontSize: 10 }}>●</span>
               </div>
               <div className="card-body">
-                <div className="card-eq">{card.equation}</div>
+                <EquationStack equation={card.equation} />
               </div>
               <div className="card-footer">
                 <span style={{ color: card.color ?? '#333', fontSize: 10 }}>●</span>

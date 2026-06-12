@@ -523,9 +523,37 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ---------- Game-feel update ---------- */
 
-/* Screen-edge flash when YOUR turn starts (team colour set inline). */
-.turn-flash { position: fixed; inset: 0; z-index: 85; pointer-events: none; border-radius: 2px; animation: turnFlash 1.3s ease-out forwards; }
-@keyframes turnFlash { 0% { opacity: 0; } 15% { opacity: 1; } 100% { opacity: 0; } }
+/* "Your Turn" banner — slides in from left, holds centre, fades out. */
+.turn-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.turn-flash-text {
+  font-size: clamp(36px, 9vw, 72px);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 16px 36px;
+  border-radius: 12px;
+  white-space: nowrap;
+  animation: yourTurnSlide 2.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  /* colour is set inline via --turn-color */
+  color: var(--turn-color, #ffd54f);
+  text-shadow: 0 0 30px var(--turn-color, #ffd54f), 0 2px 8px #000c;
+  background: #0009;
+  border: 2px solid var(--turn-color, #ffd54f);
+}
+@keyframes yourTurnSlide {
+  0%   { transform: translateX(-110vw); opacity: 1; }
+  38%  { transform: translateX(0);      opacity: 1; }
+  68%  { transform: translateX(0);      opacity: 1; }
+  100% { transform: translateX(0);      opacity: 0; }
+}
 
 /* Whole-board shake when a Bomb lands. */
 .board-wrap.shaking { animation: boardShake .55s ease-in-out; }

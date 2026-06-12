@@ -139,7 +139,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
     if (mine && !prevTurnMineRef.current) {
       play('turn');
       setTurnFlash(true);
-      const t = setTimeout(() => setTurnFlash(false), 1300);
+      const t = setTimeout(() => setTurnFlash(false), 2200);
       prevTurnMineRef.current = mine;
       return () => clearTimeout(t);
     }
@@ -496,12 +496,14 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
       <HowToPlay open={showHelp} onClose={() => setShowHelp(false)} />
 
       {turnFlash && (
-        <div
-          className="turn-flash"
-          style={{
-            boxShadow: `inset 0 0 0 5px ${TEAM_HEX[myTeam ?? 'yellow'] ?? '#ffd54f'}, inset 0 0 70px 12px ${TEAM_HEX[myTeam ?? 'yellow'] ?? '#ffd54f'}55`,
-          }}
-        />
+        <div className="turn-flash">
+          <span
+            className="turn-flash-text"
+            style={{ '--turn-color': TEAM_HEX[myTeam ?? 'yellow'] ?? '#ffd54f' } as React.CSSProperties}
+          >
+            ⚔️ Your Turn
+          </span>
+        </div>
       )}
 
       {reconnecting && <div className="reconnect-banner">📡 Reconnecting…</div>}

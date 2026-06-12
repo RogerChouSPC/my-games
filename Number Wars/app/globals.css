@@ -379,11 +379,34 @@ button { font-family: inherit; cursor: pointer; }
 .board-area { flex: 1; overflow: hidden; padding: 4px; display: flex; align-items: center; justify-content: center; min-height: 0; container-type: size; }
 /* The board is square. Fit it to the SMALLER of available width / height so the whole
    board is always visible on any phone. (cq units fall back to width:100% on old browsers.) */
-.board-wrap { background: #a8adb3; border-radius: 8px; padding: 4px 6px; border: 3px solid #777; width: 100%; width: min(100cqw, calc(100cqh - 36px)); max-width: 100%; box-sizing: border-box; }
+.board-wrap { width: 100%; width: min(100cqw, calc(100cqh - 36px)); max-width: 100%; box-sizing: border-box; }
 .board-label-row { display: flex; justify-content: space-between; margin-bottom: 2px; }
 .board-label { background: #fff; border-radius: 20px; padding: 1px 5px; font-size: 6px; font-weight: bold; color: #333; }
-.board-grid { display: grid; gap: 2px; }
-.cell { background: #e8eaec; border-radius: 3px; min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 8%; position: relative; }
+.board-grid {
+  display: grid;
+  gap: 0;
+  border: 6px solid #23251c;
+  border-radius: 8px;
+  box-sizing: border-box;
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 10px 28px rgba(0,0,0,.55), inset 0 0 0 2px rgba(0,0,0,.27);
+}
+.cell { min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 8%; position: relative; }
+/* App-drawn lattice: dark line + faint light edge so it reads on every terrain. */
+.board-grid.war .cell {
+  outline: 1.5px solid rgba(12, 13, 8, .55);
+  box-shadow: inset 0 0 0 1px rgba(255, 246, 220, .18);
+}
+/* Hard-mode wrong tap: quick shake on the cell. */
+.cell.wrongpick { animation: wrongShake .4s ease-in-out; }
+@keyframes wrongShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
 .cell.targetable { cursor: pointer; outline: 3px solid #ffe14d; outline-offset: -3px; z-index: 1; animation: targetpulse 1s ease-in-out infinite; }
 .cell.targetable .circle { filter: brightness(1.18) saturate(1.1); }
 @keyframes targetpulse {
@@ -410,10 +433,26 @@ button { font-family: inherit; cursor: pointer; }
   background-size: 40% 3px, 3px 40%, 40% 3px, 3px 40%, 40% 3px, 3px 40%, 40% 3px, 3px 40%;
   filter: drop-shadow(0 0 1px rgba(0, 0, 0, .55));
 }
-.circle { width: 100%; height: 100%; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: clamp(9px, 4vw, 22px); color: #fff; }
-.circle.free { background: #111; flex-direction: column; font-size: clamp(4px,1vw,7px); color: #ffd700; text-align: center; line-height: 1.2; }
+/* Number disc: translucent so the battlefield shows through; digit color = war bucket. */
+.circle {
+  position: absolute; inset: 14%; border-radius: 50%;
+  background: #00000042;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 900; font-size: clamp(9px, 4vw, 22px); letter-spacing: .5px;
+}
+.circle.num-light { text-shadow: -1.5px -1.5px 0 #fff, 1.5px -1.5px 0 #fff, -1.5px 1.5px 0 #fff, 1.5px 1.5px 0 #fff, 0 0 6px rgba(0,0,0,.5); }
+.circle.num-dark { text-shadow: -1.5px -1.5px 0 #000, 1.5px -1.5px 0 #000, -1.5px 1.5px 0 #000, 1.5px 1.5px 0 #000; }
 .circle.rot { transform: rotate(180deg); }
-.circle.under { text-decoration: underline; }
+/* FREE BASE corner medallion (black + gold, like the original artwork). */
+.circle.freebase {
+  inset: 9%;
+  background: radial-gradient(circle at 38% 32%, #2c2e26, #14150f 70%);
+  border: 2px solid #c9a23f;
+  box-shadow: inset 0 0 0 2.5px #14150f, inset 0 0 0 4px #8a6d24, 0 2px 6px rgba(0,0,0,.5);
+  color: #e8c258;
+  font-size: clamp(6px, 1.4vw, 10px); font-weight: 800; line-height: 1.25;
+  flex-direction: column; text-align: center; letter-spacing: .5px;
+}
 
 /* ---------- Army pieces (war theme) ---------- */
 .unit { position: absolute; inset: 4%; z-index: 2; display: flex; align-items: center; justify-content: center; }

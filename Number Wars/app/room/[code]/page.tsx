@@ -61,6 +61,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
   const [shakeKey, setShakeKey] = useState(0); // bump to shake the board (Bomb)
   const [reconnecting, setReconnecting] = useState(false);
   const [reconnectedNote, setReconnectedNote] = useState(false);
+  const [wrongPick, setWrongPick] = useState<number | null>(null); // hard-mode wrong-tap shake
 
   // Load the saved mute preference and unlock audio on the first tap (mobile rule).
   useEffect(() => {
@@ -153,6 +154,14 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
     if (won && !prevWinRef.current) play('win');
     prevWinRef.current = won;
   }, [view?.roundWinner]);
+
+  // Promotion fanfare: play when new cells lock into a Line Win (tank tier).
+  const prevSeqCountRef = useRef(0);
+  useEffect(() => {
+    const seqCount = view?.board.filter((c) => c.inSequence && !c.superSequence).length ?? 0;
+    if (seqCount > prevSeqCountRef.current) play('upgrade');
+    prevSeqCountRef.current = seqCount;
+  }, [view?.board]);
 
   // Picking a different card disarms any pending Bomb/Minus confirmation.
   useEffect(() => {
@@ -313,6 +322,10 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
   const selectedCard = view.myHand.find((c) => c.id === selectedCardId) ?? null;
   const frozen = view.roundWinner !== null || view.roundTie; // game paused (win or tie)
 
+  // Hard mode: number cards don't reveal their cells; the player must find them.
+  const hideAnswers = view.settings.showAnswerLocations === false;
+  const numberCardHidden = hideAnswers && selectedCard?.kind === 'number';
+
   // Which cells could the selected card target? Shown even when it's NOT your turn,
   // so waiting players can preview their options (they just can't place yet).
   const previewTeam = myTurn ? actingTeam : myTeam; // preview against your own team's view
@@ -399,6 +412,13 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
     if (!myTurn) {
       // Waiting player tapped a previewed cell — tell them why nothing happened.
       setHintKey((k) => k + 1);
+      return;
+    }
+    if (numberCardHidden && !targetable.has(cellIndex)) {
+      // Wrong circle (or an occupied/FREE cell) — shake it and buzz.
+      setWrongPick(cellIndex);
+      play('wrong');
+      setTimeout(() => setWrongPick(null), 450);
       return;
     }
     // Shield: pick up to 2 of your own chips, then apply.
@@ -686,13 +706,16 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
       <Board
         cells={view.board}
         size={view.settings.boardSize}
-        targetable={targetable}
+        boardTheme={view.settings.boardTheme}
+        targetable={numberCardHidden ? new Set<number>() : targetable}
         lastMoveIndex={lastPlaceIndex}
         removalCells={removalCells}
         dangerPreview={dangerPreview}
         shakeKey={shakeKey}
         pendingShield={selectedCard?.kind === 'shield' ? shieldPicks : undefined}
         revealNumbers={selectedCard?.kind === 'minus' || selectedCard?.kind === 'bomb'}
+        allowAnyPick={numberCardHidden && myTurn && !frozen}
+        wrongPick={wrongPick}
         onPick={handlePick}
       />
       <EmojiPanel onReact={(emoji) => emit('reaction', { code, emoji })} />
@@ -704,6 +727,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
         teamColor={actingTeam}
         discardMode={discardMode}
         armedHint={armedHint}
+        hideAnswers={hideAnswers}
         onSelect={(id) => {
           setShieldPicks([]);
           setSelectedCardId((cur) => (cur === id ? null : id));

@@ -1,11 +1,13 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import type { Cell, BoardSize } from '@/types/game';
+import type { Cell, BoardSize, BoardTheme } from '@/types/game';
+import { numberOutline } from '@/lib/board-layout';
 import Chip from './Chip';
 
 interface BoardProps {
   cells: Cell[];
   size: BoardSize;
+  boardTheme: BoardTheme;
   targetable: Set<number>;
   lastMoveIndex: number | null;
   removalCells?: Set<number>;
@@ -13,12 +15,15 @@ interface BoardProps {
   shakeKey?: number; // bump to shake the whole board (Bomb impact)
   pendingShield?: number[];
   revealNumbers?: boolean;
+  allowAnyPick?: boolean; // hard mode: clicks allowed on every cell (page validates)
+  wrongPick?: number | null; // cell index currently shaking from a wrong hard-mode tap
   onPick: (index: number) => void;
 }
 
 export default function Board({
   cells,
   size,
+  boardTheme,
   targetable,
   lastMoveIndex,
   removalCells,
@@ -26,6 +31,8 @@ export default function Board({
   shakeKey,
   pendingShield,
   revealNumbers,
+  allowAnyPick,
+  wrongPick,
   onPick,
 }: BoardProps) {
   // Shake the board briefly whenever shakeKey changes (a bomb just went off).
@@ -83,10 +90,11 @@ export default function Board({
           <div className="board-label">🪂 AIRDROP LANDS ANYWHERE</div>
         </div>
         <div
-          className={`board-grid${targetable.size > 0 ? ' has-targets' : ''}`}
+          className={`board-grid war${targetable.size > 0 ? ' has-targets' : ''}`}
           style={{
             gridTemplateColumns: `repeat(${size}, 1fr)`,
             gridTemplateRows: `repeat(${size}, 1fr)`,
+            backgroundImage: `url(/board-themes/${boardTheme}.png)`,
           }}
         >
           {cells.map((cell) => {
@@ -98,19 +106,20 @@ export default function Board({
             if (cell.index === lastMoveIndex) cellCls.push('lastmove');
             if (removalCells?.has(cell.index)) cellCls.push('removed');
             if (dangerPreview?.has(cell.index)) cellCls.push('danger');
+            if (wrongPick === cell.index) cellCls.push('wrongpick');
             const circleCls = ['circle'];
-            if (cell.value === 'FREE') circleCls.push('free');
-            else circleCls.push('under');
-            if (topHalf) circleCls.push('rot');
+            if (cell.value === 'FREE') circleCls.push('freebase');
+            else circleCls.push(numberOutline(cell.color) === 'dark' ? 'num-dark' : 'num-light');
+            if (topHalf && cell.value !== 'FREE') circleCls.push('rot');
             return (
               <div
                 key={cell.index}
                 className={cellCls.join(' ')}
-                onClick={() => isTarget && onPick(cell.index)}
+                onClick={() => (isTarget || allowAnyPick) && onPick(cell.index)}
               >
                 <div
                   className={circleCls.join(' ')}
-                  style={{ background: cell.value === 'FREE' ? undefined : cell.color }}
+                  style={cell.value === 'FREE' ? undefined : { color: cell.color }}
                 >
                   {cell.value === 'FREE' ? (
                     <>

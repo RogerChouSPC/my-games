@@ -9,6 +9,7 @@ interface HandCardsProps {
   teamColor: TeamColor | null;
   discardMode: boolean;
   armedHint?: string | null; // overrides the helper label while a Bomb/Minus awaits its confirm tap
+  hideAnswers?: boolean; // hard mode: number cards don't highlight their cells
   onSelect: (cardId: string) => void;
   onSwapDead: (cardId: string) => void;
   onDiscard: (cardId: string) => void;
@@ -40,6 +41,7 @@ export default function HandCards({
   teamColor,
   discardMode,
   armedHint,
+  hideAnswers,
   onSelect,
   onSwapDead,
   onDiscard,
@@ -67,7 +69,9 @@ export default function HandCards({
                 : selected?.kind === 'minus'
                   ? '🎯 Snipe: tap an enemy chip to shoot it off the board'
                   : myTurn
-        ? '🃏 Tap a card, then tap the matching circle on the board'
+        ? hideAnswers
+          ? '🧮 Solve the equation and find your number on the board!'
+          : '🃏 Tap a card, then tap the matching circle on the board'
         : '🃏 Tap a card to preview your options — wait for your turn to place';
 
   const handleTap = (card: Card, dead: boolean) => {

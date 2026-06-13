@@ -114,7 +114,7 @@ export default function SettingsModal({ view, onSave, onClose }: Props) {
               className={`opt-card theme-card${boardTheme === t.key ? ' active' : ''}`}
               onClick={() => setBoardTheme(t.key)}
             >
-              <img src={`/board-themes/${t.key}.png`} alt={t.name} className="theme-thumb" />
+              <img src={`/board-themes/thumbs/${t.key}.jpg`} alt={t.name} className="theme-thumb" />
               <div className="rule">{t.name}</div>
             </div>
           ))}

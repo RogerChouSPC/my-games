@@ -35,6 +35,38 @@ export function getPlayerInput(): PlayerInput {
   return { id: getPlayerId(), name: profile?.name ?? '', icon: profile?.icon ?? 1 };
 }
 
+// Remember the most recent game so an accidental Back can be undone with one tap.
+const LAST_ROOM_KEY = 'nw_last_room';
+
+export function saveLastRoom(code: string): void {
+  try {
+    localStorage.setItem(LAST_ROOM_KEY, JSON.stringify({ code, ts: Date.now() }));
+  } catch {
+    // storage unavailable (private mode) — feature silently off
+  }
+}
+
+export function getLastRoom(): string | null {
+  try {
+    const raw = localStorage.getItem(LAST_ROOM_KEY);
+    if (!raw) return null;
+    const { code, ts } = JSON.parse(raw) as { code?: string; ts?: number };
+    if (typeof code !== 'string' || code.length !== 4) return null;
+    if (typeof ts !== 'number' || Date.now() - ts > 12 * 60 * 60 * 1000) return null; // stale after 12h
+    return code;
+  } catch {
+    return null;
+  }
+}
+
+export function clearLastRoom(): void {
+  try {
+    localStorage.removeItem(LAST_ROOM_KEY);
+  } catch {
+    // ignore
+  }
+}
+
 export interface ReactionEvent {
   playerId: string;
   emoji: string;
@@ -63,6 +95,11 @@ export interface CardEffectEvent {
   key: number;
 }
 
+export interface PlayerLeftEvent {
+  name: string;
+  key: number;
+}
+
 export function useSocket() {
   const ref = useRef<Socket | null>(null);
   const [view, setView] = useState<ClientView | null>(null);
@@ -71,6 +108,7 @@ export function useSocket() {
   const [reaction, setReaction] = useState<ReactionEvent | null>(null);
   const [superEvent, setSuperEvent] = useState<SuperEvent | null>(null);
   const [cardEffect, setCardEffect] = useState<CardEffectEvent | null>(null);
+  const [playerLeft, setPlayerLeft] = useState<PlayerLeftEvent | null>(null);
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
@@ -89,6 +127,9 @@ export function useSocket() {
     );
     s.on('card-effect', (e: { kind: CardEffectKind; byName: string; targetName?: string }) =>
       setCardEffect({ ...e, key: Date.now() + Math.random() })
+    );
+    s.on('player-left', (e: { name: string }) =>
+      setPlayerLeft({ name: e.name, key: Date.now() + Math.random() })
     );
     return () => {
       s.close();
@@ -110,6 +151,7 @@ export function useSocket() {
     reaction,
     superEvent,
     cardEffect,
+    playerLeft,
     connected,
     emit,
     onJoined,

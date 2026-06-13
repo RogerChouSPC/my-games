@@ -99,6 +99,8 @@ function winningTeamColor(room: ServerRoom): TeamColor | null {
 }
 
 const turnTimers = new Map<string, ReturnType<typeof setTimeout>>(); // code → active turn timer
+const afkTimers = new Map<string, ReturnType<typeof setTimeout>>(); // code → AFK auto-play timer
+const AFK_AUTOPLAY_MS = 5000; // a disconnected player's turn is auto-played after this
 
 // Apply a new room state, broadcast it, (re)arm the per-turn timer, and fire any
 // transient celebration. Used by both socket handlers and the auto-resolve timer.
@@ -114,6 +116,7 @@ function commitRoom(io: Server, code: string, next: ServerRoom): void {
   if (justWon) result = { ...result, roundWinnerGif: randomGif('winner') };
   Object.assign(room, result);
   armTurnTimer(io, code); // stamps room.turnEndsAt before we broadcast
+  armAfkTimer(io, code); // auto-plays shortly if the next player is away
   broadcast(io, room);
   if (superGained) io.to(code).emit('super-sequence', { gif: randomGif('super-sequence') });
   for (const id of skipped) {
@@ -148,6 +151,35 @@ function armTurnTimer(io: Server, code: string): void {
     commitRoom(io, code, autoMove(r, current));
   }, seconds * 1000);
   turnTimers.set(code, timer);
+}
+
+// When the current player is away (left or lost connection), auto-play their move
+// after a short grace period so the game never stalls. Re-evaluated on every state
+// change and on connect/disconnect; a no-op while the current player is present.
+function armAfkTimer(io: Server, code: string): void {
+  const existing = afkTimers.get(code);
+  if (existing) {
+    clearTimeout(existing);
+    afkTimers.delete(code);
+  }
+  const room = rooms.get(code);
+  if (!room || room.phase !== 'playing' || room.roundWinner || room.roundTie) return;
+  const currentId = room.turnOrder[room.currentTurn];
+  const current = room.players.find((p) => p.id === currentId);
+  // Self-test seats are played by the host — watch the host's connection instead.
+  const watched = current?.isSeat ? room.players.find((p) => p.id === room.hostId) : current;
+  if (!watched || watched.connected) return;
+  const timer = setTimeout(() => {
+    afkTimers.delete(code);
+    const r = rooms.get(code);
+    if (!r || r.phase !== 'playing' || r.roundWinner || r.roundTie) return;
+    const cid = r.turnOrder[r.currentTurn];
+    const cur = r.players.find((p) => p.id === cid);
+    const w = cur?.isSeat ? r.players.find((p) => p.id === r.hostId) : cur;
+    if (!cid || !w || w.connected) return; // they came back — let them play
+    commitRoom(io, code, autoMove(r, cid));
+  }, AFK_AUTOPLAY_MS);
+  afkTimers.set(code, timer);
 }
 
 export function registerHandlers(io: Server): void {
@@ -205,6 +237,7 @@ export function registerHandlers(io: Server): void {
         existing.connected = true;
         existing.name = player.name || existing.name;
         existing.icon = player.icon || existing.icon;
+        armAfkTimer(io, code); // they're back — cancel any pending auto-play
       } else if (room.phase === 'lobby') {
         if (room.settings.mode === 'selftest') {
           socket.emit('error-msg', 'This is a self-test room (single player)');
@@ -522,12 +555,28 @@ export function registerHandlers(io: Server): void {
       io.to(code).emit('reaction', { playerId: me, emoji });
     });
 
+    // A player intentionally leaves the game (confirmed in the UI). They stay in the
+    // room roster so they can rejoin with the same identity, but everyone is told.
+    socket.on('leave-room', ({ code }: { code: string }) => {
+      const me = actorId();
+      const room = rooms.get(code);
+      if (!me || !room) return;
+      const p = room.players.find((pl) => pl.id === me);
+      if (!p) return;
+      p.connected = false;
+      socket.leave(code);
+      io.to(code).emit('player-left', { name: p.name });
+      broadcast(io, room);
+      armAfkTimer(io, code);
+    });
+
     socket.on('disconnect', () => {
       for (const room of rooms.values()) {
         const p = room.players.find((pl) => playerSocket.get(pl.id) === socket.id);
         if (p) {
           p.connected = false;
           broadcast(io, room);
+          armAfkTimer(io, room.code);
         }
       }
     });

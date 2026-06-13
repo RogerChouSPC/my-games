@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import CharacterPicker from '@/components/CharacterPicker';
 import HowToPlay from '@/components/HowToPlay';
-import { getSavedProfile, saveProfile } from '@/lib/client/useSocket';
+import { getSavedProfile, saveProfile, getLastRoom } from '@/lib/client/useSocket';
 
 const HOWTO_KEY = 'nw_howto_seen';
 
@@ -13,9 +13,11 @@ export default function Home() {
   const [profile, setProfile] = useState<{ name: string; icon: number } | null>(null);
   const [showPicker, setShowPicker] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [lastRoom, setLastRoom] = useState<string | null>(null);
 
   useEffect(() => {
     setProfile(getSavedProfile());
+    setLastRoom(getLastRoom());
     // First visit on this device: explain the game once.
     if (!localStorage.getItem(HOWTO_KEY)) setShowHelp(true);
   }, []);
@@ -75,6 +77,12 @@ export default function Home() {
             </>
           )}
         </button>
+
+        {lastRoom && (
+          <button className="battle-btn back-to-game" onClick={() => router.push(`/room/${lastRoom}`)}>
+            <span className="battle-btn-icon">↩️</span> Back to game ({lastRoom})
+          </button>
+        )}
 
         <button className="battle-btn" onClick={() => router.push('/create')}>
           <span className="battle-btn-icon">🎮</span> Create Battle Room

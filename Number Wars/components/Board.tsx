@@ -37,6 +37,19 @@ export default function Board({
   keepBrightTeam,
   onPick,
 }: BoardProps) {
+  // Loading sequence: the artwork appears first (a tiny thumbnail shows instantly,
+  // swapped for the full image once loaded), then the grid/numbers fade in over it.
+  const [artReady, setArtReady] = useState(false);
+  useEffect(() => {
+    setArtReady(false);
+    const img = new window.Image();
+    img.onload = () => setArtReady(true);
+    img.src = `/board-themes/${boardTheme}.png`;
+    return () => {
+      img.onload = null;
+    };
+  }, [boardTheme]);
+
   // Shake the board briefly whenever shakeKey changes (a bomb just went off).
   const [shaking, setShaking] = useState(false);
   useEffect(() => {
@@ -92,11 +105,13 @@ export default function Board({
           <div className="board-label">🪂 AIRDROP LANDS ANYWHERE</div>
         </div>
         <div
-          className={`board-grid war${targetable.size > 0 ? ' has-targets' : ''}`}
+          className={`board-grid war${artReady ? ' art-ready' : ''}${targetable.size > 0 ? ' has-targets' : ''}`}
           style={{
             gridTemplateColumns: `repeat(${size}, 1fr)`,
             gridTemplateRows: `repeat(${size}, 1fr)`,
-            backgroundImage: `url(/board-themes/${boardTheme}.png)`,
+            backgroundImage: artReady
+              ? `url(/board-themes/${boardTheme}.png)`
+              : `url(/board-themes/thumbs/${boardTheme}.jpg)`,
           }}
         >
           {cells.map((cell) => {

@@ -7,6 +7,8 @@ import {
   getPlayerId,
   getSavedProfile,
   saveProfile,
+  saveLastRoom,
+  clearLastRoom,
 } from '@/lib/client/useSocket';
 import { play, isMuted, setMuted, unlockAudio, type SoundName } from '@/lib/client/sounds';
 import HowToPlay from '@/components/HowToPlay';
@@ -44,8 +46,18 @@ const TEAM_EMOJI: Record<string, string> = {
 export default function RoomPage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = use(params);
   const router = useRouter();
-  const { view, error, nameTaken, reaction, superEvent, cardEffect, connected, emit, clearNameTaken } =
-    useSocket();
+  const {
+    view,
+    error,
+    nameTaken,
+    reaction,
+    superEvent,
+    cardEffect,
+    playerLeft,
+    connected,
+    emit,
+    clearNameTaken,
+  } = useSocket();
 
   const [profile, setProfile] = useState<{ name: string; icon: number } | null>(null);
   const [joined, setJoined] = useState(false);
@@ -63,6 +75,8 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
   const [reconnecting, setReconnecting] = useState(false);
   const [reconnectedNote, setReconnectedNote] = useState(false);
   const [wrongPick, setWrongPick] = useState<number | null>(null); // hard-mode wrong-tap shake
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false); // Back pressed — really leave?
+  const [leftNote, setLeftNote] = useState<string | null>(null); // "X left the game" banner
 
   // Load the saved mute preference and unlock audio on the first tap (mobile rule).
   useEffect(() => {
@@ -169,6 +183,45 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
     setArmedCell(null);
   }, [selectedCardId]);
 
+  // Remember this game so "Back to game" can return here; forget it once it's over
+  // (or the room doesn't exist anymore).
+  useEffect(() => {
+    if (!view) return;
+    if (view.phase === 'final') clearLastRoom();
+    else saveLastRoom(code);
+  }, [view, code]);
+  useEffect(() => {
+    if (error === 'Room not found') clearLastRoom();
+  }, [error]);
+
+  // Mobile Back-button guard: ask before leaving an active game. A sentinel history
+  // entry absorbs the Back press; we show our own confirm instead.
+  useEffect(() => {
+    if (!joined) return;
+    window.history.pushState({ nwGuard: true }, '');
+    const onPop = () => {
+      setShowLeaveConfirm(true);
+      window.history.pushState({ nwGuard: true }, '');
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, [joined]);
+
+  // Leaving keeps the room remembered — the home screen's "Back to game" button
+  // works until the game actually ends (phase 'final' clears it).
+  const confirmLeave = () => {
+    emit('leave-room', { code });
+    router.push('/');
+  };
+
+  // Transient "X left the game" banner.
+  useEffect(() => {
+    if (!playerLeft) return;
+    setLeftNote(playerLeft.name);
+    const t = setTimeout(() => setLeftNote(null), 3000);
+    return () => clearTimeout(t);
+  }, [playerLeft]);
+
   // On a win/tie, show the celebration popup for ~3s, then auto-hide it to reveal
   // the highlighted board underneath. The host taps Next when ready (no auto-advance).
   const [winPopup, setWinPopup] = useState(false);
@@ -261,7 +314,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
           onAssign={(team: TeamColor) => emit('assign-team', { code, playerId: myId, team })}
           onStart={() => emit('start-game', { code })}
           onUpdateSettings={(patch) => emit('update-settings', { code, settings: patch })}
-          onExit={() => router.push('/')}
+          onExit={confirmLeave}
           onEditCharacter={() => setEditing(true)}
         />
       </>
@@ -528,6 +581,28 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
       )}
 
       {reconnecting && <div className="reconnect-banner">📡 Reconnecting…</div>}
+      {leftNote && <div className="reconnect-banner">🚪 {leftNote} left the game</div>}
+
+      {showLeaveConfirm && (
+        <div className="overlay" onClick={() => setShowLeaveConfirm(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div style={{ fontSize: 34, marginBottom: 6 }}>🚪</div>
+            <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 6 }}>Leave the battle?</div>
+            <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 14 }}>
+              While you&apos;re away your turns are auto-played after 5 seconds. You can come back
+              any time with the &quot;Back to game&quot; button on the home screen.
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button className="ghost-btn" onClick={() => setShowLeaveConfirm(false)}>
+                ⚔️ Stay
+              </button>
+              <button className="primary-btn" onClick={confirmLeave}>
+                🚪 Leave game
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {reconnectedNote && <div className="reconnect-banner ok">✓ Reconnected</div>}
 
       {hintKey > 0 && (

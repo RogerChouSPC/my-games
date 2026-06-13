@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Settings, BoardSize, GameMode, BoardTheme } from '@/types/game';
-import { useSocket, getPlayerId, getSavedProfile, saveProfile } from '@/lib/client/useSocket';
+import { useSocket, getPlayerId, getSavedProfile, saveProfile, getLastRoom } from '@/lib/client/useSocket';
 import CharacterPicker from '@/components/CharacterPicker';
 
 export default function CreateRoom() {
@@ -11,6 +11,11 @@ export default function CreateRoom() {
 
   const [profile, setProfile] = useState<{ name: string; icon: number } | null>(null);
   const [showPicker, setShowPicker] = useState(false);
+  const [lastRoom, setLastRoom] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLastRoom(getLastRoom());
+  }, []);
 
   const [mode, setMode] = useState<GameMode>('teams');
   const [boardSize, setBoardSize] = useState<BoardSize>(8);
@@ -108,6 +113,16 @@ export default function CreateRoom() {
         ← Back
       </button>
 
+      {lastRoom && (
+        <button
+          className="battle-btn back-to-game"
+          style={{ marginBottom: 12 }}
+          onClick={() => router.push(`/room/${lastRoom}`)}
+        >
+          <span className="battle-btn-icon">↩️</span> Back to game ({lastRoom})
+        </button>
+      )}
+
       <div className="logo">
         <div className="logo-icon">⚔️</div>
         <div className="logo-title" style={{ fontSize: 22 }}>
@@ -202,7 +217,7 @@ export default function CreateRoom() {
                 className={`opt-card theme-card${boardTheme === t.key ? ' active' : ''}`}
                 onClick={() => setBoardTheme(t.key)}
               >
-                <img src={`/board-themes/${t.key}.png`} alt={t.name} className="theme-thumb" />
+                <img src={`/board-themes/thumbs/${t.key}.jpg`} alt={t.name} className="theme-thumb" />
                 <div className="rule">{t.name}</div>
               </div>
             ))}

@@ -46,7 +46,7 @@ export default function Board({
     let hold: ReturnType<typeof setTimeout> | null = null;
     const img = new window.Image();
     img.onload = () => {
-      hold = setTimeout(() => setArtReady(true), 700); // admire the battlefield first
+      hold = setTimeout(() => setArtReady(true), 1200); // admire the battlefield first
     };
     img.src = `/board-themes/${boardTheme}.png`;
     return () => {

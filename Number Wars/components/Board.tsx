@@ -38,15 +38,20 @@ export default function Board({
   onPick,
 }: BoardProps) {
   // Loading sequence: the artwork appears first (a tiny thumbnail shows instantly,
-  // swapped for the full image once loaded), then the grid/numbers fade in over it.
+  // swapped for the full image once loaded), the bare battlefield holds for a beat,
+  // then the grid/numbers fade in slowly over it.
   const [artReady, setArtReady] = useState(false);
   useEffect(() => {
     setArtReady(false);
+    let hold: ReturnType<typeof setTimeout> | null = null;
     const img = new window.Image();
-    img.onload = () => setArtReady(true);
+    img.onload = () => {
+      hold = setTimeout(() => setArtReady(true), 700); // admire the battlefield first
+    };
     img.src = `/board-themes/${boardTheme}.png`;
     return () => {
       img.onload = null;
+      if (hold) clearTimeout(hold);
     };
   }, [boardTheme]);
 

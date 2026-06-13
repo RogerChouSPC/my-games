@@ -1,15 +1,16 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import type { CardEffectEvent, CardEffectKind } from '@/lib/client/useSocket';
+import AssassinIcon from './AssassinIcon';
 
 // Themed overlay shown to everyone when a power card is played.
 const EFFECTS: Record<
   CardEffectKind,
-  { icon: string; cls: string; color: string; title: (e: CardEffectEvent) => string; dur?: number }
+  { icon: ReactNode; cls: string; color: string; title: (e: CardEffectEvent) => string; dur?: number }
 > = {
   freeze: { icon: '🧊', cls: 'fx-freeze', color: '#80d8ff', title: (e) => `${e.byName} FROZE ${e.targetName ?? 'a player'}!` },
   steal: {
-    icon: '🥷',
+    icon: <AssassinIcon />,
     cls: 'fx-steal',
     color: '#ce93d8',
     title: (e) => (e.targetName ? `${e.byName} stole a card from ${e.targetName}!` : `${e.byName} STOLE a card!`),

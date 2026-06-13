@@ -1,5 +1,7 @@
 'use client';
+import type { ReactNode } from 'react';
 import type { Card, Cell } from '@/types/game';
+import AssassinIcon from './AssassinIcon';
 
 interface HandCardsProps {
   hand: Card[];
@@ -56,11 +58,11 @@ function isDead(card: Card, board: Cell[]): boolean {
 }
 
 // Visuals for the icon-based special cards (everything except number cards).
-const NEW_SPECIAL: Partial<Record<Card['kind'], { icon: string; label: string; accent: string }>> = {
+const NEW_SPECIAL: Partial<Record<Card['kind'], { icon: ReactNode; label: string; accent: string }>> = {
   plus: { icon: '🪂', label: 'AIRDROP', accent: '#ffd54f' },
   minus: { icon: '🎯', label: 'SNIPE', accent: '#ff5252' },
   freeze: { icon: '🧊', label: 'FREEZE', accent: '#80d8ff' },
-  steal: { icon: '🥷', label: 'STEAL', accent: '#ce93d8' },
+  steal: { icon: <AssassinIcon />, label: 'STEAL', accent: '#ce93d8' },
   shield: { icon: '🛡️', label: 'SHIELD', accent: '#fff176' },
   bomb: { icon: '💣', label: 'BOMB', accent: '#ff7043' },
   reroll: { icon: '🔀', label: 'REROLL', accent: '#80cbc4' },
@@ -90,7 +92,7 @@ export default function HandCards({
         : selected?.kind === 'shield'
           ? '🛡️ Tap up to 2 of YOUR chips to shield (hidden from enemies)'
           : selected?.kind === 'steal'
-            ? '🥷 Tap an opponent in the bar above to steal a card'
+            ? '🗡️ Tap an opponent in the bar above to steal a card'
             : selected?.kind === 'bomb'
               ? '💣 Tap a spot to blow up that 2×2 patch'
               : selected?.kind === 'plus'

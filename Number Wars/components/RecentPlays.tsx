@@ -1,6 +1,8 @@
 'use client';
+import type { ReactNode } from 'react';
 import type { Player, RecentPlay } from '@/types/game';
 import { colorFor } from '@/lib/board-layout';
+import AssassinIcon from './AssassinIcon';
 
 const TEAM_HEX: Record<string, string> = {
   red: '#ef5350',
@@ -10,11 +12,11 @@ const TEAM_HEX: Record<string, string> = {
 };
 
 // Symbol + accent for each special card (number cards show their number instead).
-const SPECIAL: Record<string, { face: string; color: string }> = {
+const SPECIAL: Record<string, { face: ReactNode; color: string }> = {
   plus: { face: '🪂', color: '#ffd54f' },
   minus: { face: '🎯', color: '#ff5252' },
   freeze: { face: '🧊', color: '#80d8ff' },
-  steal: { face: '🥷', color: '#ce93d8' },
+  steal: { face: <AssassinIcon />, color: '#ce93d8' },
   shield: { face: '🛡️', color: '#fff176' },
   bomb: { face: '💣', color: '#ff7043' },
   reroll: { face: '🔀', color: '#80cbc4' },

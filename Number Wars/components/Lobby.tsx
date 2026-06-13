@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import QRCode from 'qrcode';
 import type { ClientView, TeamColor, Settings } from '@/types/game';
 import SettingsModal from './SettingsModal';
+import AssassinIcon from './AssassinIcon';
 
 const TEAM_NAME: Record<TeamColor, string> = {
   red: 'Red',
@@ -89,7 +90,7 @@ export default function Lobby({
       desc: 'Pick an opponent — their next turn is skipped. The ice shatters once their turn passes.',
     },
     {
-      key: 'steal', icon: '🥷', label: 'STEAL', name: 'Steal', accent: '#ce93d8', n: view.settings.stealCards,
+      key: 'steal', icon: <AssassinIcon />, label: 'STEAL', name: 'Steal', accent: '#ce93d8', n: view.settings.stealCards,
       desc: 'Take a face-down card from an opponent’s hand into yours. You still play a card afterwards.',
     },
     {

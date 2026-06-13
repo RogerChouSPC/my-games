@@ -1,12 +1,14 @@
 'use client';
+import type { ReactNode } from 'react';
 import type { Card } from '@/types/game';
+import AssassinIcon from './AssassinIcon';
 
 // Icons for special cards shown inside the picker (numbers show their equation).
-const SPECIAL_FACE: Partial<Record<Card['kind'], { icon: string; label: string; accent: string }>> = {
+const SPECIAL_FACE: Partial<Record<Card['kind'], { icon: ReactNode; label: string; accent: string }>> = {
   plus: { icon: '🪂', label: 'AIRDROP', accent: '#ffd54f' },
   minus: { icon: '🎯', label: 'SNIPE', accent: '#ff5252' },
   freeze: { icon: '🧊', label: 'FREEZE', accent: '#80d8ff' },
-  steal: { icon: '🥷', label: 'STEAL', accent: '#ce93d8' },
+  steal: { icon: <AssassinIcon />, label: 'STEAL', accent: '#ce93d8' },
   shield: { icon: '🛡️', label: 'SHIELD', accent: '#fff176' },
   bomb: { icon: '💣', label: 'BOMB', accent: '#ff7043' },
   reroll: { icon: '🔀', label: 'REROLL', accent: '#80cbc4' },

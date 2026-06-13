@@ -1,6 +1,7 @@
 'use client';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { ClientView, Settings, BoardSize } from '@/types/game';
+import AssassinIcon from './AssassinIcon';
 
 interface Props {
   view: ClientView;
@@ -16,7 +17,7 @@ function Stepper({
   value,
   set,
 }: {
-  label: string;
+  label: ReactNode;
   desc: string;
   value: number;
   set: (v: number) => void;
@@ -172,7 +173,16 @@ export default function SettingsModal({ view, onSave, onClose }: Props) {
         <Stepper label="🪂 Airdrop" desc="Drop a chip on any empty number" value={plusCards} set={setPlusCards} />
         <Stepper label="🎯 Snipe" desc="Shoot one enemy chip off the board" value={minusCards} set={setMinusCards} />
         <Stepper label="🧊 Freeze" desc="Skip an opponent's next turn" value={freezeCards} set={setFreezeCards} />
-        <Stepper label="🥷 Steal" desc="Take a hidden card from an opponent's hand" value={stealCards} set={setStealCards} />
+        <Stepper
+          label={
+            <>
+              <AssassinIcon /> Steal
+            </>
+          }
+          desc="Take a hidden card from an opponent's hand"
+          value={stealCards}
+          set={setStealCards}
+        />
         <Stepper label="🛡️ Shield" desc="Secretly shield 2 of your chips (one-time)" value={shieldCards} set={setShieldCards} />
         <Stepper label="💣 Bomb" desc="Blow up a 2×2 patch of chips" value={bombCards} set={setBombCards} />
         <Stepper label="🔀 Reroll" desc="Swap this + one chosen card for 2 new" value={rerollCards} set={setRerollCards} />

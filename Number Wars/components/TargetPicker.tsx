@@ -18,7 +18,7 @@ interface Props {
 
 // Popup that lists the opponents you can target with a Steal or Freeze card.
 export default function TargetPicker({ mode, players, handCounts, onPick, onCancel }: Props) {
-  const title = mode === 'steal' ? '🥷 Steal — pick an opponent' : '🧊 Freeze — pick an opponent';
+  const title = mode === 'steal' ? '🗡️ Steal — pick an opponent' : '🧊 Freeze — pick an opponent';
   const sub =
     mode === 'steal' ? 'Take one card from their hand.' : 'Skip their next turn.';
   return (

@@ -1,4 +1,5 @@
 'use client';
+import AssassinIcon from './AssassinIcon';
 
 interface Props {
   targetName: string;
@@ -12,7 +13,9 @@ export default function StealPicker({ targetName, count, onPick, onCancel }: Pro
   return (
     <div className="overlay" onClick={onCancel}>
       <div className="modal" style={{ maxWidth: 360, textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
-        <div className="card-title" style={{ fontSize: 18, marginBottom: 6 }}>🥷 Steal from {targetName}</div>
+        <div className="card-title" style={{ fontSize: 18, marginBottom: 6 }}>
+          <AssassinIcon /> Steal from {targetName}
+        </div>
         <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 16 }}>
           Their cards are face-down — pick one blindly.
         </div>

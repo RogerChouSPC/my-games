@@ -194,7 +194,8 @@ export default function HandCards({
             <span className="hand-team-chip">
               <UnitSprite tier="squad" team={teamColor} />
             </span>
-            <span className="hand-team-name">{teamColor} Team</span>
+            <span className="hand-team-name">{teamColor}</span>
+            <span className="hand-team-sub">Team</span>
           </div>
         )}
       </div>

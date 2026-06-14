@@ -32,7 +32,7 @@ export interface Settings {
 export interface Player {
   id: string; // stable id stored in browser localStorage
   name: string;
-  icon: number; // 1..26
+  icon: number; // 1..30
   team: TeamColor | null;
   connected: boolean;
   isSeat?: boolean; // synthetic seat in self-test mode (controlled by the host)

@@ -8,7 +8,7 @@ interface CharacterPickerProps {
   onConfirm: (name: string, icon: number) => void;
 }
 
-const ICONS = Array.from({ length: 26 }, (_, i) => i + 1);
+const ICONS = Array.from({ length: 30 }, (_, i) => i + 1);
 
 export default function CharacterPicker({
   initialName = '',

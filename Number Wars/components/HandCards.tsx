@@ -1,13 +1,15 @@
 'use client';
 import type { ReactNode } from 'react';
-import type { Card, Cell } from '@/types/game';
+import type { Card, Cell, TeamColor } from '@/types/game';
 import AssassinIcon from './AssassinIcon';
+import UnitSprite, { UNIT_RING } from './UnitSprite';
 
 interface HandCardsProps {
   hand: Card[];
   board: Cell[];
   selectedCardId: string | null;
   myTurn: boolean;
+  teamColor: TeamColor | null; // your team — tints the hand block and shows a team chip
   discardMode: boolean;
   armedHint?: string | null; // overrides the helper label while a Bomb/Minus awaits its confirm tap
   hideAnswers?: boolean; // hard mode: number cards don't highlight their cells
@@ -73,6 +75,7 @@ export default function HandCards({
   board,
   selectedCardId,
   myTurn,
+  teamColor,
   discardMode,
   armedHint,
   hideAnswers,
@@ -80,6 +83,7 @@ export default function HandCards({
   onSwapDead,
   onDiscard,
 }: HandCardsProps) {
+  const ring = teamColor ? UNIT_RING[teamColor] : null;
   const selected = hand.find((c) => c.id === selectedCardId) ?? null;
   const label = armedHint
     ? armedHint
@@ -116,8 +120,19 @@ export default function HandCards({
   };
 
   return (
-    <div className="hand-area">
+    <div
+      className="hand-area"
+      style={
+        ring
+          ? {
+              borderTop: `3px solid ${ring}`,
+              background: `linear-gradient(180deg, ${ring}26, var(--panel) 46%)`,
+            }
+          : undefined
+      }
+    >
       <div className={`hand-label${discardMode ? ' discard' : ''}`}>{label}</div>
+      <div className="hand-main">
       <div className={`hand-cards${discardMode ? ' discardable' : ''}`}>
         {hand.map((card) => {
           const active = card.id === selectedCardId;
@@ -173,6 +188,15 @@ export default function HandCards({
             </div>
           );
         })}
+      </div>
+        {teamColor && ring && (
+          <div className="hand-team" style={{ '--ring': ring } as React.CSSProperties}>
+            <span className="hand-team-chip">
+              <UnitSprite tier="squad" team={teamColor} />
+            </span>
+            <span className="hand-team-name">{teamColor} Team</span>
+          </div>
+        )}
       </div>
     </div>
   );

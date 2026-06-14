@@ -28,7 +28,6 @@ import CardEffect from '@/components/CardEffect';
 import StealPicker from '@/components/StealPicker';
 import TargetPicker from '@/components/TargetPicker';
 import RerollPicker from '@/components/RerollPicker';
-import UnitSprite from '@/components/UnitSprite';
 
 const TEAM_HEX: Record<string, string> = {
   red: '#ef5350',
@@ -512,8 +511,6 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
   const winnerTeam = view.teams.find((t) => t.color === view.roundWinner) ?? null;
   const winnerPlayers = view.players.filter((p) => p.team === view.roundWinner && !p.isSeat);
 
-  const badgeTeam = myTeam ?? (selfTest ? activePlayer?.team ?? null : null);
-
   // Latest move markers: a black ring around a newly-placed chip, or red corner
   // brackets on the square(s) a Minus/Bomb just cleared.
   const lm = view.lastMove;
@@ -612,19 +609,6 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
       {hintKey > 0 && (
         <div className="turn-hint-toast" key={hintKey}>
           ⏳ Not your turn yet — waiting for {activePlayer?.name ?? 'the other player'}
-        </div>
-      )}
-
-      {badgeTeam && (
-        <div className="team-badge">
-          <span className="lbl" style={{ color: TEAM_HEX[badgeTeam] }}>
-            You are
-            <br />
-            {badgeTeam} Team
-          </span>
-          <span className="badge-unit">
-            <UnitSprite tier="squad" team={badgeTeam} />
-          </span>
         </div>
       )}
 
@@ -809,6 +793,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
         board={view.board}
         selectedCardId={selectedCardId}
         myTurn={myTurn}
+        teamColor={actingTeam}
         discardMode={discardMode}
         armedHint={armedHint}
         hideAnswers={hideAnswers}

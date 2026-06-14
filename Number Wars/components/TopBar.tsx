@@ -8,12 +8,6 @@ const TEAM_HEX: Record<string, string> = {
   green: '#66bb6a',
   purple: '#ab47bc',
 };
-const TEAM_EMOJI: Record<string, string> = {
-  red: '🔴',
-  blue: '🔵',
-  green: '🟢',
-  purple: '🟣',
-};
 const TEAM_NAME: Record<string, string> = {
   red: 'Red',
   blue: 'Blue',
@@ -63,19 +57,40 @@ export default function TopBar({
       : `${activePlayer?.name ?? '...'}'s turn`;
   return (
     <div className="topbar">
-      <div
-        className="turn-badge"
-        style={{ borderColor: turnColor, background: `${turnColor}22` }}
-      >
-        <span className="turn-dot" style={{ background: turnColor }} />
-        <span className="turn-text" style={{ color: turnColor }}>
-          {label}
-        </span>
+      <div className="topbar-main">
+        <div className="topbar-left">
+          <div
+            className="turn-badge"
+            style={{ borderColor: turnColor, background: `${turnColor}22` }}
+          >
+            <span className="turn-dot" style={{ background: turnColor }} />
+            <span className="turn-text" style={{ color: turnColor }}>
+              {label}
+            </span>
+          </div>
+          {remaining !== null && (
+            <span className={`turn-timer${remaining <= 10 ? ' low' : ''}`}>⏱ {remaining}s</span>
+          )}
+        </div>
+        <div className="topbar-actions">
+          {onHelp && (
+            <button className="icon-btn" onClick={onHelp} title="How to play">
+              ?
+            </button>
+          )}
+          {onToggleMute && (
+            <button className="icon-btn" onClick={onToggleMute} title={muted ? 'Unmute sounds' : 'Mute sounds'}>
+              {muted ? '🔇' : '🔊'}
+            </button>
+          )}
+          {onEndGame && (
+            <button className="end-btn" onClick={onEndGame} title="End the game">
+              ⏹ End
+            </button>
+          )}
+        </div>
       </div>
-      {remaining !== null && (
-        <span className={`turn-timer${remaining <= 10 ? ' low' : ''}`}>⏱ {remaining}s</span>
-      )}
-      <div className="score-row">
+      <div className={`score-row teams-${teams.length}`}>
         {teams.map((t) => {
           // Glow when a team is exactly one Line Win away from winning the game.
           const oneAway =
@@ -88,27 +103,12 @@ export default function TopBar({
               title={`${TEAM_NAME[t.color]} Team — ${t.sequencesThisGame} of ${sequencesToWin} Line Wins`}
             >
               <span className="tsc-top">
-                {TEAM_EMOJI[t.color]} {t.sequencesThisGame}/{sequencesToWin}
+                {t.sequencesThisGame}/{sequencesToWin}
               </span>
               <span className="tsc-label">LINE WINS</span>
             </div>
           );
         })}
-        {onHelp && (
-          <button className="icon-btn" onClick={onHelp} title="How to play">
-            ?
-          </button>
-        )}
-        {onToggleMute && (
-          <button className="icon-btn" onClick={onToggleMute} title={muted ? 'Unmute sounds' : 'Mute sounds'}>
-            {muted ? '🔇' : '🔊'}
-          </button>
-        )}
-        {onEndGame && (
-          <button className="end-btn" onClick={onEndGame} title="End the game">
-            ⏹ End
-          </button>
-        )}
       </div>
     </div>
   );

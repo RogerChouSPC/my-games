@@ -190,12 +190,15 @@ export default function HandCards({
         })}
       </div>
         {teamColor && ring && (
-          <div className="hand-team" style={{ '--ring': ring } as React.CSSProperties}>
+          <div
+            className={`hand-team${myTurn ? ' active-turn' : ''}`}
+            style={{ '--ring': ring } as React.CSSProperties}
+          >
             <span className="hand-team-chip">
               <UnitSprite tier="squad" team={teamColor} />
             </span>
             <span className="hand-team-name">{teamColor}</span>
-            <span className="hand-team-sub">Team</span>
+            <span className="hand-team-sub">★ SQUAD ★</span>
           </div>
         )}
       </div>

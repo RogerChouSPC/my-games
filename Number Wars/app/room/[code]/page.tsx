@@ -70,7 +70,10 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
   const [armedCell, setArmedCell] = useState<number | null>(null); // Bomb/Minus awaiting its confirm tap
   const [muted, setMutedState] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
-  const [turnFlash, setTurnFlash] = useState(false); // brief screen-edge flash when your turn starts
+  const [turnFlash, setTurnFlash] = useState(false); // "Your/Name's Turn" banner shown on each turn change
+  const [turnFlashKey, setTurnFlashKey] = useState(0); // bump to restart the banner animation
+  const [turnFlashTeam, setTurnFlashTeam] = useState<TeamColor | null>(null); // active player's team (banner colour)
+  const [turnFlashLabel, setTurnFlashLabel] = useState('Your Turn'); // "Your Turn" or "Roger's Turn"
   const [shakeKey, setShakeKey] = useState(0); // bump to shake the board (Bomb)
   const [reconnecting, setReconnecting] = useState(false);
   const [reconnectedNote, setReconnectedNote] = useState(false);
@@ -147,19 +150,20 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
     prevMoveRef.current = sig;
   }, [view?.lastMove]);
 
-  // "Your turn!" alert: a ding plus a team-coloured screen-edge flash.
-  const prevTurnMineRef = useRef(false);
+  // Turn banner: on every turn change show "Your Turn" (yours) or "Roger's Turn"
+  // (someone else's), in that player's team colour. Only YOUR turn also dings.
   const turnPlayerId = view?.phase === 'playing' ? view.turnOrder[view.currentTurn] ?? null : null;
   useEffect(() => {
-    const mine = !!turnPlayerId && turnPlayerId === getPlayerId();
-    if (mine && !prevTurnMineRef.current) {
-      play('turn');
-      setTurnFlash(true);
-      const t = setTimeout(() => setTurnFlash(false), 2200);
-      prevTurnMineRef.current = mine;
-      return () => clearTimeout(t);
-    }
-    prevTurnMineRef.current = mine;
+    if (!turnPlayerId) return;
+    const tp = view?.players.find((p) => p.id === turnPlayerId) ?? null;
+    const isMe = turnPlayerId === getPlayerId();
+    setTurnFlashTeam(tp?.team ?? null);
+    setTurnFlashLabel(isMe ? 'Your Turn' : `${tp?.name ?? 'Player'}'s Turn`);
+    if (isMe) play('turn');
+    setTurnFlashKey((k) => k + 1);
+    setTurnFlash(true);
+    const t = setTimeout(() => setTurnFlash(false), 2200);
+    return () => clearTimeout(t);
   }, [turnPlayerId]);
 
   // Victory chime when a team wins the game.
@@ -570,12 +574,12 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
       <HowToPlay open={showHelp} onClose={() => setShowHelp(false)} />
 
       {turnFlash && (
-        <div className="turn-flash">
+        <div className="turn-flash" key={turnFlashKey}>
           <span
             className="turn-flash-text"
-            style={{ '--turn-color': TEAM_HEX[myTeam ?? 'purple'] ?? '#ffd54f' } as React.CSSProperties}
+            style={{ '--turn-color': TEAM_HEX[turnFlashTeam ?? 'purple'] ?? '#ffd54f' } as React.CSSProperties}
           >
-            ⚔️ Your Turn
+            ⚔️ {turnFlashLabel}
           </span>
         </div>
       )}

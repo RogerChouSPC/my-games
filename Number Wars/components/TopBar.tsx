@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import type { TeamState, Player } from '@/types/game';
 
 const TEAM_HEX: Record<string, string> = {
@@ -26,6 +26,8 @@ interface TopBarProps {
   muted?: boolean;
   onToggleMute?: () => void;
   onHelp?: () => void;
+  leftSlot?: ReactNode; // player character icons, shown on the same row as the controls
+  playedSlot?: ReactNode; // "Played cards" toggle, sits with the control icons
 }
 
 export default function TopBar({
@@ -39,6 +41,8 @@ export default function TopBar({
   muted,
   onToggleMute,
   onHelp,
+  leftSlot,
+  playedSlot,
 }: TopBarProps) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -48,31 +52,19 @@ export default function TopBar({
   }, [turnEndsAt]);
   const remaining = turnEndsAt ? Math.max(0, Math.ceil((turnEndsAt - now) / 1000)) : null;
 
-  const turnColor = activePlayer?.team ? TEAM_HEX[activePlayer.team] : '#888';
-  // In self-test the host plays every side, so name the active side instead of "Your Turn".
-  const label = selfTest
-    ? `Playing: ${activePlayer?.name ?? '...'}`
-    : myTurn
-      ? 'Your Turn!'
-      : `${activePlayer?.name ?? '...'}'s turn`;
+  // Whose turn it is is shown by the big flashing banner + player strip, so the top
+  // bar no longer needs a persistent turn label — just the timer (when on) + controls.
   return (
     <div className="topbar">
       <div className="topbar-main">
         <div className="topbar-left">
-          <div
-            className="turn-badge"
-            style={{ borderColor: turnColor, background: `${turnColor}22` }}
-          >
-            <span className="turn-dot" style={{ background: turnColor }} />
-            <span className="turn-text" style={{ color: turnColor }}>
-              {label}
-            </span>
-          </div>
+          {leftSlot}
           {remaining !== null && (
             <span className={`turn-timer${remaining <= 10 ? ' low' : ''}`}>⏱ {remaining}s</span>
           )}
         </div>
         <div className="topbar-actions">
+          {playedSlot}
           {onHelp && (
             <button className="icon-btn" onClick={onHelp} title="How to play">
               ?

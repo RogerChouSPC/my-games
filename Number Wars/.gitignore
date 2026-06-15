@@ -9,3 +9,4 @@ memory
 *.log
 CURRENT-LINK.txt
 tsconfig.tsbuildinfo
+tools/

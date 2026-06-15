@@ -288,7 +288,9 @@ button { font-family: inherit; cursor: pointer; }
 /* Two rows: controls on top, the big score on its own full-width row below. */
 .topbar { display: flex; flex-direction: column; align-items: stretch; gap: 6px; padding: 7px 10px; background: var(--panel); border-bottom: 1px solid var(--line); flex-shrink: 0; }
 .topbar-main { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.topbar-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.topbar-left { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1 1 auto; }
+.topbar-left .players-strip { flex: 1 1 auto; min-width: 0; scrollbar-width: none; }
+.topbar-left .players-strip::-webkit-scrollbar { display: none; }
 .topbar-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .turn-badge { display: flex; align-items: center; gap: 6px; border-radius: 30px; padding: 4px 10px; border: 1.5px solid; }
 .turn-dot { width: 7px; height: 7px; border-radius: 50%; animation: blink 1s infinite; }
@@ -327,6 +329,12 @@ button { font-family: inherit; cursor: pointer; }
    strip's overflow-x:auto; Safari/WebKit does not, so we set it explicitly. */
 .turn-row .players-strip { flex: 1 1 240px; min-width: 0; }
 .turn-row .recent-plays { flex: 0 0 auto; border-left: 1px solid #1e1e35; }
+
+/* "Played cards" toggle — sits with the control icons; hidden panel drops down. */
+.played-wrap { position: relative; display: flex; align-items: center; }
+.played-btn.on { border-color: var(--accent); color: #fff; background: rgba(255,192,36,.16); }
+.played-panel { position: absolute; top: calc(100% + 6px); right: 0; z-index: 35; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 8px 20px rgba(0,0,0,.55); }
+.played-panel .recent-plays { border-left: none; }
 
 /* Transient "it's not your turn" hint when a waiting player taps the board. */
 .turn-hint-toast { position: fixed; top: 64px; left: 50%; transform: translateX(-50%); z-index: 70; background: rgba(20,20,40,.96); color: #ffd54f; border: 1px solid #ffd54f55; padding: 10px 16px; border-radius: 10px; font-size: 13px; font-weight: 700; box-shadow: 0 6px 20px rgba(0,0,0,.5); pointer-events: none; max-width: 90vw; text-align: center; animation: hintPop .25s ease-out; }

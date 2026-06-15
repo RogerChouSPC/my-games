@@ -79,6 +79,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
   const [wrongPick, setWrongPick] = useState<number | null>(null); // hard-mode wrong-tap shake
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false); // Back pressed — really leave?
   const [leftNote, setLeftNote] = useState<string | null>(null); // "X left the game" banner
+  const [showPlayed, setShowPlayed] = useState(false); // the "played cards" tab is hidden by default
 
   // Load the saved mute preference and unlock audio on the first tap (mobile rule).
   useEffect(() => {
@@ -686,29 +687,44 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
         muted={muted}
         onToggleMute={toggleMute}
         onHelp={() => setShowHelp(true)}
-      />
-      <div className="turn-row">
-        <PlayerStrip
-          players={turnQueue}
-          frozenIds={view.frozenPlayerIds}
-          targetPlayers={
-            selectedCard?.kind === 'freeze'
-              ? eligibleFreezeTargets
-              : selectedCard?.kind === 'steal'
-                ? eligibleStealTargets
-                : undefined
-          }
-          onTargetPlayer={(pid) => {
-            if (selectedCard?.kind === 'freeze') {
-              emit('play-freeze', { code, cardId: selectedCard.id, targetId: pid });
-              setSelectedCardId(null);
-            } else if (selectedCard?.kind === 'steal') {
-              setStealTarget(pid); // open the blind card-pick
+        leftSlot={
+          <PlayerStrip
+            players={turnQueue}
+            frozenIds={view.frozenPlayerIds}
+            targetPlayers={
+              selectedCard?.kind === 'freeze'
+                ? eligibleFreezeTargets
+                : selectedCard?.kind === 'steal'
+                  ? eligibleStealTargets
+                  : undefined
             }
-          }}
-        />
-        <RecentPlays plays={view.recentPlays} players={view.players} />
-      </div>
+            onTargetPlayer={(pid) => {
+              if (selectedCard?.kind === 'freeze') {
+                emit('play-freeze', { code, cardId: selectedCard.id, targetId: pid });
+                setSelectedCardId(null);
+              } else if (selectedCard?.kind === 'steal') {
+                setStealTarget(pid); // open the blind card-pick
+              }
+            }}
+          />
+        }
+        playedSlot={
+          <div className="played-wrap">
+            <button
+              className={`icon-btn played-btn${showPlayed ? ' on' : ''}`}
+              onClick={() => setShowPlayed((v) => !v)}
+              title={showPlayed ? 'Hide played cards' : 'Show played cards'}
+            >
+              🃏
+            </button>
+            {showPlayed && (
+              <div className="played-panel">
+                <RecentPlays plays={view.recentPlays} players={view.players} />
+              </div>
+            )}
+          </div>
+        }
+      />
 
       {/* Step 1: pick which opponent to Steal from / Freeze (popup list). */}
       {selectedCard &&

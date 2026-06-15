@@ -205,6 +205,7 @@ export function registerHandlers(io: Server): void {
         isLastGame: false,
         winners: null,
         roundWinner: null,
+        roundWinnerPlayerId: null,
         roundWinnerGif: null,
         roundTie: false,
         superCount: 0,
@@ -529,6 +530,7 @@ export function registerHandlers(io: Server): void {
       room.isLastGame = false;
       room.winners = null;
       room.roundWinner = null;
+      room.roundWinnerPlayerId = null;
       room.roundWinnerGif = null;
       room.roundTie = false;
       room.superCount = 0;

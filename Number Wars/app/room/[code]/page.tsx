@@ -236,7 +236,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
       return;
     }
     setWinPopup(true);
-    const t = setTimeout(() => setWinPopup(false), 3000);
+    const t = setTimeout(() => setWinPopup(false), 3800);
     return () => clearTimeout(t);
   }, [winState]);
 
@@ -511,6 +511,9 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
   const isHost = view.myPlayerId === view.hostId;
   const winnerTeam = view.teams.find((t) => t.color === view.roundWinner) ?? null;
   const winnerPlayers = view.players.filter((p) => p.team === view.roundWinner && !p.isSeat);
+  // The player who placed the winning chip — featured in the round-win banner.
+  const winChipPlayer = view.players.find((p) => p.id === view.roundWinnerPlayerId) ?? null;
+  const charIcon = (n: number) => `/icons/char_${String(n).padStart(2, '0')}.png`;
 
   // Latest move markers: a black ring around a newly-placed chip, or red corner
   // brackets on the square(s) a Minus/Bomb just cleared.
@@ -625,20 +628,31 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
                 </div>
               </>
             ) : (
-              <>
-                {view.roundWinnerGif ? (
-                  <img src={view.roundWinnerGif} alt="Winner!" className="gif-img" />
-                ) : (
-                  <div className="gif-fallback">🏆🎉🏆</div>
-                )}
+              <div
+                className="winner-spotlight"
+                style={{ ['--ring' as string]: TEAM_HEX[view.roundWinner ?? 'red'] }}
+              >
+                <span className="winner-rays" />
+                <span className="winner-confetti">
+                  {Array.from({ length: 14 }).map((_, i) => (
+                    <i key={i} style={{ ['--i' as string]: i } as React.CSSProperties} />
+                  ))}
+                </span>
+                <span className="winner-medal">
+                  {winChipPlayer ? (
+                    <img src={charIcon(winChipPlayer.icon)} alt={winChipPlayer.name} />
+                  ) : (
+                    <span className="winner-medal-fallback">🏆</span>
+                  )}
+                  <span className="winner-star">★</span>
+                </span>
                 <div className="win-title" style={{ color: TEAM_HEX[view.roundWinner ?? 'red'] }}>
-                  {TEAM_EMOJI[view.roundWinner ?? 'red']}{' '}
-                  {selfTest
-                    ? winnerTeam?.color
-                    : winnerPlayers.map((p) => p.name).join(' & ') || view.roundWinner}{' '}
-                  wins this game!
+                  🏆 {winChipPlayer?.name ?? winnerTeam?.color ?? view.roundWinner} wins the round!
                 </div>
-              </>
+                <div className="winner-sub">
+                  Placed the winning chip — starts first next game!
+                </div>
+              </div>
             )}
           </div>
         </div>
@@ -657,10 +671,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
             ) : (
               <>
                 {TEAM_EMOJI[view.roundWinner ?? 'red']}{' '}
-                {selfTest
-                  ? winnerTeam?.color
-                  : winnerPlayers.map((p) => p.name).join(' & ') || view.roundWinner}{' '}
-                wins!
+                {winChipPlayer?.name ?? winnerTeam?.color ?? view.roundWinner} wins the round!
               </>
             )}
           </span>

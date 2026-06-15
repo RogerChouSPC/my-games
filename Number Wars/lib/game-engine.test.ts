@@ -61,6 +61,7 @@ function baseRoom(): RoomState {
     isLastGame: false,
     winners: null,
     roundWinner: null,
+    roundWinnerPlayerId: null,
     roundWinnerGif: null,
     roundTie: false,
     superCount: 0,
@@ -100,6 +101,20 @@ describe('startGame', () => {
     for (let i = 0; i < order.length; i++) {
       expect(teamAt(order[i])).not.toBe(teamAt(order[(i + 1) % order.length]));
     }
+  });
+});
+
+describe('nextGame — winner starts first', () => {
+  it('the player who placed the winning chip goes first next game', () => {
+    const won = { ...startGame(baseRoom()), roundWinner: 'blue' as const, roundWinnerPlayerId: 'p2' };
+    const next = nextGame(won, 'blue');
+    expect(next.turnOrder[next.currentTurn]).toBe('p2');
+  });
+  it('falls back to the winning team if that player has left', () => {
+    const won = { ...startGame(baseRoom()), roundWinner: 'red' as const, roundWinnerPlayerId: 'ghost' };
+    const next = nextGame(won, 'red');
+    const firstTeam = next.players.find((p) => p.id === next.turnOrder[next.currentTurn])?.team;
+    expect(firstTeam).toBe('red');
   });
 });
 

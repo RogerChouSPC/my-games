@@ -151,8 +151,15 @@ function checkWin(room: RoomState): RoomState {
   const teams = room.teams.map((t) =>
     t.color === winnerTeam.color ? { ...t, gameWins: t.gameWins + 1 } : t
   );
+  // The winning chip was the move that just landed, so its player is lastMove.playerId.
+  // They get advertised and start first next game.
   // Freeze on the board (phase stays 'playing') until the host presses Next.
-  return { ...room, teams, roundWinner: winnerTeam.color };
+  return {
+    ...room,
+    teams,
+    roundWinner: winnerTeam.color,
+    roundWinnerPlayerId: room.lastMove?.playerId ?? null,
+  };
 }
 
 // After a move, if nobody won and the game can't continue, freeze as a tie.
@@ -210,6 +217,7 @@ export function startGame(room: RoomState, firstPlayerId?: string): ServerRoom {
     currentTurn,
     lastMove: null,
     roundWinner: null,
+    roundWinnerPlayerId: null,
     roundWinnerGif: null,
     roundTie: false,
     superCount: 0,
@@ -580,7 +588,14 @@ export function autoMove(room: ServerRoom, playerId: string): ServerRoom {
 }
 
 export function nextGame(room: RoomState, winningTeam: TeamColor | null): ServerRoom {
-  const firstPlayer = winningTeam ? room.players.find((p) => p.team === winningTeam)?.id : undefined;
+  // The exact player who placed the winning chip starts first next game; if they've
+  // left, fall back to the winning team's first player.
+  const chipPlayer =
+    room.roundWinnerPlayerId && room.players.some((p) => p.id === room.roundWinnerPlayerId)
+      ? room.roundWinnerPlayerId
+      : undefined;
+  const firstPlayer =
+    chipPlayer ?? (winningTeam ? room.players.find((p) => p.team === winningTeam)?.id : undefined);
   return startGame({ ...room, phase: 'lobby' }, firstPlayer);
 }
 

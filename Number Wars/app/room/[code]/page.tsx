@@ -628,6 +628,7 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
                 </div>
               </>
             ) : (
+              <>
               <div
                 className="winner-spotlight"
                 style={{ ['--ring' as string]: TEAM_HEX[view.roundWinner ?? 'red'] }}
@@ -653,6 +654,10 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
                   Placed the winning chip — starts first next game!
                 </div>
               </div>
+              {view.roundWinnerGif && (
+                <img src={view.roundWinnerGif} alt="celebration" className="gif-img win-gif" />
+              )}
+              </>
             )}
           </div>
         </div>

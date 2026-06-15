@@ -647,8 +647,11 @@ export default function RoomPage({ params }: { params: Promise<{ code: string }>
                   )}
                   <span className="winner-star">★</span>
                 </span>
+                <div className="winner-name" style={{ color: TEAM_HEX[view.roundWinner ?? 'red'] }}>
+                  {winChipPlayer?.name ?? winnerTeam?.color ?? view.roundWinner}
+                </div>
                 <div className="win-title" style={{ color: TEAM_HEX[view.roundWinner ?? 'red'] }}>
-                  🏆 {winChipPlayer?.name ?? winnerTeam?.color ?? view.roundWinner} wins the round!
+                  🏆 Wins the round!
                 </div>
                 <div className="winner-sub">
                   Placed the winning chip — starts first next game!
